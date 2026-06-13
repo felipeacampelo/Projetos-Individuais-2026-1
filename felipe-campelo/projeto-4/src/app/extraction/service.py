@@ -21,6 +21,9 @@ class DocumentSemanticProcessingResult:
     document_state: str
     canonical_metric_count: int
     failed_fact_count: int
+    extraction_run_id: int | None = None
+    failure_stage: str | None = None
+    failure_reason: str | None = None
 
 
 class DocumentSemanticProcessingService:
@@ -53,7 +56,7 @@ class DocumentSemanticProcessingService:
                 source_url=source_url,
                 document_type=document_type or "documento_resultado",
             )
-        except Exception:
+        except Exception as exc:
             self.document_lifecycle_repository.force_state(document, DocumentState.INTERPRETATION_FAILED)
             self.session.commit()
             return DocumentSemanticProcessingResult(
@@ -61,6 +64,8 @@ class DocumentSemanticProcessingService:
                 document_state=DocumentState.INTERPRETATION_FAILED.value,
                 canonical_metric_count=0,
                 failed_fact_count=0,
+                failure_stage="interpretation",
+                failure_reason=str(exc),
             )
 
         extraction_run = self.extraction_repository.get_latest_run_for_document(result_document_id)
@@ -72,6 +77,8 @@ class DocumentSemanticProcessingService:
                 document_state=DocumentState.INTERPRETATION_FAILED.value,
                 canonical_metric_count=0,
                 failed_fact_count=0,
+                failure_stage="interpretation",
+                failure_reason="missing_extraction_run_after_pipeline",
             )
 
         normalized_company = self.canonization_service.company_normalizer.normalize(
@@ -92,7 +99,7 @@ class DocumentSemanticProcessingService:
                 result_document_id=result_document_id,
                 current_document_state=document.current_state,
             )
-        except Exception:
+        except Exception as exc:
             self.document_lifecycle_repository.force_state(document, DocumentState.CANONICALIZATION_FAILED)
             self.session.commit()
             return DocumentSemanticProcessingResult(
@@ -100,6 +107,9 @@ class DocumentSemanticProcessingService:
                 document_state=DocumentState.CANONICALIZATION_FAILED.value,
                 canonical_metric_count=0,
                 failed_fact_count=0,
+                extraction_run_id=extraction_run.id,
+                failure_stage="canonicalization",
+                failure_reason=str(exc),
             )
 
         if normalized_company is not None and canonization_result.document_state == DocumentState.CANONICAL.value:
@@ -113,4 +123,9 @@ class DocumentSemanticProcessingService:
             document_state=canonization_result.document_state,
             canonical_metric_count=canonization_result.canonical_metric_count,
             failed_fact_count=canonization_result.failed_fact_count,
+            extraction_run_id=extraction_run.id,
+            failure_stage="canonicalization"
+            if canonization_result.document_state == DocumentState.CANONICALIZATION_FAILED.value
+            else None,
+            failure_reason=canonization_result.failure_reason,
         )

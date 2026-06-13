@@ -77,6 +77,7 @@ Resultado esperado:
 - visualizar job criado
 - visualizar sinais detectados
 - visualizar `processing_status` de cada sinal
+- quando houver erro, visualizar `failure_stage` e `failure_reason`
 
 ### 5. Auditar documentos e linhagem
 
@@ -88,6 +89,7 @@ Resultado esperado:
 - cada documento com `source_url`, `content_hash`, periodo e numero de versao quando conhecidos
 - cada documento com sinais de descoberta associados
 - quando houver duas versoes do mesmo periodo, a mais antiga pode aparecer como `superseded`
+- se algum sinal falhar em recuperacao, interpretacao ou canonizacao, isso aparece no proprio signal
 
 ### 6. Consultar superficie canonica
 
@@ -122,6 +124,7 @@ Resultado esperado:
 - `docs/adr` registra decisoes arquiteturais
 - `alembic/versions` contem a migracao inicial
 - `alembic/versions` contem a migracao inicial e a migracao de versionamento de documentos
+- `alembic/versions` contem a migracao de auditoria de falhas de monitoramento
 - `src/app` contem o servico
 - `tests/unit` contem testes iniciais
 

@@ -83,7 +83,7 @@ uvicorn --app-dir src app.main:app --reload
 
 1. Suba a API e abra `/docs`.
 2. Execute `POST /api/ingest/run` para `mrv` ou `direcional`.
-3. Consulte `GET /api/monitoramentos` e `GET /api/monitoramentos/{job_id}` para auditar sinais detectados.
+3. Consulte `GET /api/monitoramentos` e `GET /api/monitoramentos/{job_id}` para auditar sinais detectados, incluindo `failure_stage` e `failure_reason` quando houver erro.
 4. Consulte `GET /api/documentos` e `GET /api/documentos/{document_id}/linhagem` para ver a linhagem do PDF.
 5. Consulte `GET /api/conjuntura` para verificar cobertura canonica por periodo.
 
@@ -125,6 +125,12 @@ PYTHONPATH=src python -m app.tools.validate_real_pdf --url "https://api.mziq.com
 - cada descoberta gera `PublicationSignal`
 - a relacao entre sinal e documento fica em `DocumentDiscoveryLink`
 - a API expõe essa trilha em `GET /api/documentos/{document_id}/linhagem`
+
+### Observabilidade e falhas explicaveis
+
+- `StructuredLogger` emite logs JSON com correlacao minima por `job_id`, `signal_id`, `document_id` e `extraction_id`
+- `GET /api/monitoramentos` e `GET /api/monitoramentos/{job_id}` expõem `failure_stage` e `failure_reason`
+- falhas de `source_fetch`, `recovery`, `interpretation` e `canonicalization` ficam registradas para auditoria
 
 ### API por empresa e periodo
 

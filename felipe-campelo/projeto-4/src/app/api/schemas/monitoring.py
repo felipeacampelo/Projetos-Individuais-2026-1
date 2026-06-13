@@ -13,6 +13,8 @@ class MonitoringSignalItemResponse(BaseModel):
     signal_title: str | None = None
     discovered_at: datetime
     processing_status: str
+    failure_stage: str | None = None
+    failure_reason: str | None = None
 
 
 class MonitoringJobItemResponse(BaseModel):
@@ -22,6 +24,8 @@ class MonitoringJobItemResponse(BaseModel):
     status: str
     started_at: datetime
     finished_at: datetime | None = None
+    failure_stage: str | None = None
+    failure_reason: str | None = None
     error_message: str | None = None
     signal_count: int
 

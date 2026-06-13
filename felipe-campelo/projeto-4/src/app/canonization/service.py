@@ -23,6 +23,7 @@ class CanonizationResult:
     canonical_metric_count: int
     failed_fact_count: int
     document_state: str
+    failure_reason: str | None = None
 
 
 class CanonizationService:
@@ -52,6 +53,7 @@ class CanonizationService:
                 canonical_metric_count=0,
                 failed_fact_count=len(contract.facts),
                 document_state=DocumentState.CANONICALIZATION_FAILED.value,
+                failure_reason="document_not_semantically_complete",
             )
 
         normalized_company = self.company_normalizer.normalize(contract.document.company_reported_name)
@@ -61,6 +63,7 @@ class CanonizationService:
                 canonical_metric_count=0,
                 failed_fact_count=len(contract.facts),
                 document_state=DocumentState.CANONICALIZATION_FAILED.value,
+                failure_reason="company_not_normalized",
             )
 
         created_count = 0
@@ -126,6 +129,7 @@ class CanonizationService:
             canonical_metric_count=created_count,
             failed_fact_count=failed_count,
             document_state=new_state.value,
+            failure_reason=None if created_count > 0 else "no_fact_could_be_canonicalized",
         )
 
     def _sync_document_state(

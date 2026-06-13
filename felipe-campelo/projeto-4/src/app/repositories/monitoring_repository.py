@@ -80,10 +80,22 @@ class MonitoringRepository:
         return list(self.session.scalars(stmt))
 
     def update_signal_status(self, *, signal_id: int, processing_status: str) -> PublicationSignal | None:
+        return self.update_signal_processing(signal_id=signal_id, processing_status=processing_status)
+
+    def update_signal_processing(
+        self,
+        *,
+        signal_id: int,
+        processing_status: str,
+        failure_stage: str | None = None,
+        failure_reason: str | None = None,
+    ) -> PublicationSignal | None:
         signal = self.get_signal(signal_id)
         if signal is None:
             return None
         signal.processing_status = processing_status
+        signal.failure_stage = failure_stage
+        signal.failure_reason = failure_reason
         self.session.add(signal)
         self.session.flush()
         return signal
@@ -93,6 +105,8 @@ class MonitoringRepository:
         *,
         job_id: int,
         status: str,
+        failure_stage: str | None = None,
+        failure_reason: str | None = None,
         error_message: str | None = None,
         mark_finished: bool = False,
     ) -> MonitoringJob | None:
@@ -100,6 +114,8 @@ class MonitoringRepository:
         if job is None:
             return None
         job.status = status
+        job.failure_stage = failure_stage
+        job.failure_reason = failure_reason
         job.error_message = error_message
         if mark_finished:
             job.finished_at = utc_now()

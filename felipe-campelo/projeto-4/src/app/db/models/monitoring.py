@@ -21,6 +21,8 @@ class MonitoringJob(Base):
     status: Mapped[str] = mapped_column(String(50))
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    failure_stage: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    failure_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     publication_signals: Mapped[list["PublicationSignal"]] = relationship(
@@ -42,6 +44,8 @@ class PublicationSignal(Base):
     signal_title: Mapped[str | None] = mapped_column(String(500), nullable=True)
     discovered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     processing_status: Mapped[str] = mapped_column(String(50), default="signal_detected")
+    failure_stage: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    failure_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     monitoring_job: Mapped[MonitoringJob] = relationship(back_populates="publication_signals")
     company: Mapped["Company"] = relationship()

@@ -27,6 +27,8 @@ def list_monitoring_jobs(session: Session = Depends(get_database_session)) -> Mo
                 status=job.status,
                 started_at=job.started_at,
                 finished_at=job.finished_at,
+                failure_stage=job.failure_stage,
+                failure_reason=job.failure_reason,
                 error_message=job.error_message,
                 signal_count=len(job.publication_signals),
             )
@@ -49,6 +51,8 @@ def get_monitoring_job(job_id: int, session: Session = Depends(get_database_sess
         status=job.status,
         started_at=job.started_at,
         finished_at=job.finished_at,
+        failure_stage=job.failure_stage,
+        failure_reason=job.failure_reason,
         error_message=job.error_message,
         signal_count=len(signals),
         signals=[
@@ -60,6 +64,8 @@ def get_monitoring_job(job_id: int, session: Session = Depends(get_database_sess
                 signal_title=signal.signal_title,
                 discovered_at=signal.discovered_at,
                 processing_status=signal.processing_status,
+                failure_stage=signal.failure_stage,
+                failure_reason=signal.failure_reason,
             )
             for signal in signals
         ],

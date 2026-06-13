@@ -20,6 +20,8 @@ class DocumentRecoveryResult:
     effective_url: str | None
     file_size_bytes: int | None
     content: bytes | None
+    failure_stage: str | None = None
+    failure_reason: str | None = None
 
 
 class DocumentRecoveryService:
@@ -44,8 +46,13 @@ class DocumentRecoveryService:
     ) -> DocumentRecoveryResult:
         try:
             fetched = self.fetcher.fetch(signal_url)
-        except DocumentFetchError:
-            self.monitoring_repository.update_signal_status(signal_id=signal_id, processing_status="recovery_failed")
+        except DocumentFetchError as exc:
+            self.monitoring_repository.update_signal_processing(
+                signal_id=signal_id,
+                processing_status="recovery_failed",
+                failure_stage="recovery",
+                failure_reason=str(exc),
+            )
             self.session.commit()
             return DocumentRecoveryResult(
                 status="recovery_failed",
@@ -54,6 +61,8 @@ class DocumentRecoveryService:
                 effective_url=None,
                 file_size_bytes=None,
                 content=None,
+                failure_stage="recovery",
+                failure_reason=str(exc),
             )
 
         return self._persist_fetched_document(
@@ -81,7 +90,10 @@ class DocumentRecoveryService:
                 result_document_id=existing.id,
                 publication_signal_id=signal_id,
             )
-            self.monitoring_repository.update_signal_status(signal_id=signal_id, processing_status="duplicate_content")
+            self.monitoring_repository.update_signal_processing(
+                signal_id=signal_id,
+                processing_status="duplicate_content",
+            )
             self.session.commit()
             return DocumentRecoveryResult(
                 status="duplicate_content",
@@ -106,7 +118,10 @@ class DocumentRecoveryService:
             result_document_id=document.id,
             publication_signal_id=signal_id,
         )
-        self.monitoring_repository.update_signal_status(signal_id=signal_id, processing_status="content_recovered")
+        self.monitoring_repository.update_signal_processing(
+            signal_id=signal_id,
+            processing_status="content_recovered",
+        )
         self.session.commit()
         return DocumentRecoveryResult(
             status="observed",

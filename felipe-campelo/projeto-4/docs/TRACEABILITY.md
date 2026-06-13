@@ -169,6 +169,7 @@ Risco atual:
 Cobertura atual:
 - API publica foi documentada
 - cobertura explicita em `GET /api/conjuntura`
+- observabilidade basica com logs estruturados correlacionados e motivos explicitos de falha em `GET /api/monitoramentos`
 
 Risco atual:
 - a reavaliacao ainda nao compara completude semantica de forma sofisticada entre duas versoes do mesmo periodo

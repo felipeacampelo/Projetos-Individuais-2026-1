@@ -15,6 +15,7 @@ from app.db.models import (
     PublicationSignal,
     ResultDocument,
 )
+from app.extraction.service import DocumentSemanticProcessingResult
 from app.ingestion.fetchers.document_fetcher import DocumentFetchError, FetchedDocument
 from app.ingestion.jobs import MonitoringJobService
 
@@ -41,6 +42,22 @@ class StubDocumentFetcher:
             content=self.payloads_by_url[url],
             content_type="application/pdf",
         )
+
+
+class StubSemanticProcessingService:
+    def __init__(self, result: DocumentSemanticProcessingResult) -> None:
+        self.result = result
+
+    def process_document(
+        self,
+        *,
+        result_document_id: int,
+        content: bytes,
+        source_url: str,
+        document_type: str,
+    ) -> DocumentSemanticProcessingResult:
+        del result_document_id, content, source_url, document_type
+        return self.result
 
 
 def build_session() -> Session:
@@ -178,6 +195,18 @@ def test_run_job_marks_partial_failure_when_document_recovery_fails() -> None:
     assert result.duplicate_document_count == 0
     assert result.recovery_failed_count == 1
 
+    jobs = session.scalars(select(MonitoringJob)).all()
+    assert len(jobs) == 1
+    assert jobs[0].status == "completed_with_errors"
+    assert jobs[0].failure_stage == "recovery"
+    assert jobs[0].failure_reason == "recovery_failed_count=1"
+
+    signals = session.scalars(select(PublicationSignal)).all()
+    assert len(signals) == 1
+    assert signals[0].processing_status == "recovery_failed"
+    assert signals[0].failure_stage == "recovery"
+    assert signals[0].failure_reason == "synthetic fetch failure"
+
 
 def test_run_job_canonicalizes_parseable_pdf() -> None:
     session = build_session()
@@ -216,3 +245,45 @@ def test_run_job_canonicalizes_parseable_pdf() -> None:
 
     canonical_metrics = session.scalars(select(models.CanonicalMetric)).all()
     assert len(canonical_metrics) >= 2
+
+
+def test_run_job_records_interpretation_failure_reason_on_signal() -> None:
+    session = build_session()
+    seed_company_and_source(session)
+    html = """
+    <html>
+      <body>
+        <a href="/docs/previa-1.pdf">Prévia Operacional 1T26</a>
+      </body>
+    </html>
+    """
+    service = MonitoringJobService(
+        session,
+        results_page_fetcher=StubResultsPageFetcher({"https://ri.example.com/resultados": html}),
+        document_fetcher=StubDocumentFetcher({"https://ri.example.com/docs/previa-1.pdf": b"pdf-content"}),
+    )
+    service.document_semantic_processing_service = StubSemanticProcessingService(
+        DocumentSemanticProcessingResult(
+            extraction_status="interpretation_failed",
+            document_state="interpretation_failed",
+            canonical_metric_count=0,
+            failed_fact_count=0,
+            extraction_run_id=None,
+            failure_stage="interpretation",
+            failure_reason="pdf_text_not_extractable",
+        )
+    )
+
+    result = service.run_job(scope_type="company", scope_value="mrv")
+
+    assert result.status == "completed"
+    jobs = session.scalars(select(MonitoringJob)).all()
+    assert len(jobs) == 1
+    assert jobs[0].failure_stage == "interpretation"
+    assert jobs[0].failure_reason == "interpretation_failed_count=1"
+
+    signals = session.scalars(select(PublicationSignal)).all()
+    assert len(signals) == 1
+    assert signals[0].processing_status == "interpretation_failed"
+    assert signals[0].failure_stage == "interpretation"
+    assert signals[0].failure_reason == "pdf_text_not_extractable"

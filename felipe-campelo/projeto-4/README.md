@@ -160,7 +160,7 @@ export LLM_API_KEY="sua_chave"
 - a camada de extracao semantica ja aceita um cliente OpenAI real, mas o caminho de demonstracao continua dependendo de chave e validacao manual com PDFs reais
 - o fallback padrao continua sendo o cliente heuristico local para demonstracao offline
 - a demonstracao completa com dois layouts PDF reais ainda depende da inclusao de fixtures PDF reais adicionais e ampliacao das heuristicas
-- a reavaliacao automatica por precedencia documental foi implementada de forma inicial, mas ainda sem politica completa de completude semantica comparativa
+- a reavaliacao da fonte canônica agora compara completude semântica entre versões do mesmo tipo documental, mas ainda sem política mais rica de conflito de significado
 - o reprocessamento material ja considera mudanca de `semantic_contract_version` e `normalization_knowledge_version`, e agora executa pedidos pendentes em background por replay do PDF de origem
 
 ## Entregaveis

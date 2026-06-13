@@ -177,6 +177,7 @@ Cobertura atual:
 - pedidos pendentes de reprocessamento agora têm executor em background com status operacional auditável
 - a API operacional agora expõe a fila de reprocessamento e o detalhamento por pedido
 - a API operacional agora expõe `ExtractionRun` com fatos candidatos e evidências para auditoria semântica
+- versões concorrentes do mesmo tipo documental agora são comparadas por score de completude semântica antes do desempate por recência
 
 Risco atual:
-- a reavaliacao ainda nao compara completude semantica de forma sofisticada entre duas versoes do mesmo periodo
+- ainda falta política mais sofisticada para conflito de significado e comparação entre tipos documentais com semântica divergente

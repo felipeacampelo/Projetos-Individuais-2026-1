@@ -4,11 +4,13 @@ from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
 
+from app.canonization.evaluators.completeness import SemanticCompletenessEvaluator
 from app.canonization.resolvers.document_precedence import DocumentPrecedencePolicy
 from app.db.models import CanonicalMetric, ResultDocument
 from app.domain.document_lifecycle import DocumentState
 from app.repositories.canonical_metric_repository import CanonicalMetricRepository
 from app.repositories.document_lifecycle_repository import DocumentLifecycleRepository
+from app.repositories.extraction_repository import ExtractionRepository
 from app.repositories.result_document_repository import ResultDocumentRepository
 
 
@@ -17,6 +19,7 @@ class CanonicalSourceDecision:
     winning_document_id: int
     superseded_document_ids: list[int]
     deleted_metric_count: int = 0
+    winning_completeness_score: int | None = None
 
 
 class ReevaluateCanonicalSourceService:
@@ -26,6 +29,8 @@ class ReevaluateCanonicalSourceService:
         self.document_repository = ResultDocumentRepository(session)
         self.document_lifecycle_repository = DocumentLifecycleRepository(session)
         self.document_precedence_policy = DocumentPrecedencePolicy()
+        self.extraction_repository = ExtractionRepository(session)
+        self.completeness_evaluator = SemanticCompletenessEvaluator()
 
     def reevaluate_scope(
         self,
@@ -59,6 +64,7 @@ class ReevaluateCanonicalSourceService:
                 winning_document_id=only_document.id,
                 superseded_document_ids=[],
                 deleted_metric_count=0,
+                winning_completeness_score=len(metrics) * 100,
             )
 
         winner = self._pick_winner(list(documents_by_id.values()))
@@ -78,15 +84,46 @@ class ReevaluateCanonicalSourceService:
             winning_document_id=winner.id,
             superseded_document_ids=superseded_ids,
             deleted_metric_count=deleted_metric_count,
+            winning_completeness_score=self._score_document(winner, metrics).total,
         )
 
     def _pick_winner(self, documents: list[ResultDocument]) -> ResultDocument:
         winner = documents[0]
         for candidate in documents[1:]:
-            if self.document_precedence_policy.should_replace(winner.document_type, candidate.document_type):
+            winner_priority = self.document_precedence_policy.priority_for(winner.document_type)
+            candidate_priority = self.document_precedence_policy.priority_for(candidate.document_type)
+
+            if candidate_priority < winner_priority:
                 winner = candidate
                 continue
-            if self.document_precedence_policy.priority_for(candidate.document_type) == self.document_precedence_policy.priority_for(winner.document_type):
-                if candidate.id > winner.id:
-                    winner = candidate
+            if candidate_priority > winner_priority:
+                continue
+
+            winner_score = self._score_document(winner)
+            candidate_score = self._score_document(candidate)
+            if candidate_score.total > winner_score.total:
+                winner = candidate
+                continue
+            if candidate_score.total == winner_score.total and candidate.id > winner.id:
+                winner = candidate
         return winner
+
+    def _score_document(
+        self,
+        document: ResultDocument,
+        metrics: list[CanonicalMetric] | None = None,
+    ):
+        metric_count = len(
+            metrics_for_document(metrics, document.id)
+            if metrics is not None
+            else self.canonical_metric_repository.list_for_document(document.id)
+        )
+        extraction_run = self.extraction_repository.get_latest_run_detail_for_document(document.id)
+        return self.completeness_evaluator.score_extraction_run(
+            extraction_run=extraction_run,
+            canonical_metric_count=metric_count,
+        )
+
+
+def metrics_for_document(metrics: list[CanonicalMetric], document_id: int) -> list[CanonicalMetric]:
+    return [metric for metric in metrics if metric.result_document_id == document_id]

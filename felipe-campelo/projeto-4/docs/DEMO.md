@@ -162,6 +162,7 @@ Resultado esperado:
 - o pipeline já evita reprocessamento cego de duplicatas sem mudança material de contrato ou normalização
 - pedidos de `ReprocessingRequest` agora podem ser executados pelo scheduler e deixam status `pending`, `processing`, `completed` ou `failed`
 - a porta de extração já aceita provedor OpenAI real, mas a demonstração máxima ainda depende de rodar esse caminho com chave e PDFs reais
+- a reavaliação canônica já compara completude entre versões do mesmo tipo documental
 - a parte ainda incompleta para o criterio maximo e a substituicao do extrator heuristico por integracao LLM real em dois PDFs reais diferentes
 - a reavaliacao canônica existe, mas ainda e simples quando duas versoes do mesmo periodo competem
 - na apresentacao, deixar isso explicito evita vender uma completude que o codigo ainda nao entrega

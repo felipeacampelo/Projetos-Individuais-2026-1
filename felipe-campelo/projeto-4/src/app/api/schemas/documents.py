@@ -14,6 +14,7 @@ class DocumentItemResponse(BaseModel):
     document_id: str
     company_slug: str | None = None
     reference_period: DocumentReferencePeriodResponse
+    version_number: int | None = None
     document_type: str | None = None
     status: str
     source_url: str
@@ -39,6 +40,8 @@ class DocumentLineageSignalResponse(BaseModel):
 class DocumentLineageResponse(BaseModel):
     document_id: str
     company_slug: str | None = None
+    reference_period: DocumentReferencePeriodResponse | None = None
+    version_number: int | None = None
     source_url: str
     effective_url: str
     content_hash: str

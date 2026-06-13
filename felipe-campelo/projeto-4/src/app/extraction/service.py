@@ -9,6 +9,7 @@ from app.domain.document_lifecycle import DocumentState
 from app.extraction.llm.heuristic import HeuristicExtractionClient
 from app.extraction.pipelines.semantic_extraction import SemanticExtractionPipeline
 from app.repositories.document_lifecycle_repository import DocumentLifecycleRepository
+from app.repositories.document_version_repository import DocumentVersionRepository
 from app.repositories.extraction_repository import ExtractionRepository
 from app.repositories.result_document_repository import ResultDocumentRepository
 
@@ -27,6 +28,7 @@ class DocumentSemanticProcessingService:
         self.extraction_pipeline = SemanticExtractionPipeline(session=session, llm_client=HeuristicExtractionClient())
         self.canonization_service = CanonizationService(session)
         self.document_lifecycle_repository = DocumentLifecycleRepository(session)
+        self.document_version_repository = DocumentVersionRepository(session)
         self.result_document_repository = ResultDocumentRepository(session)
         self.extraction_repository = ExtractionRepository(session)
 
@@ -68,6 +70,17 @@ class DocumentSemanticProcessingService:
                 document_state=DocumentState.INTERPRETATION_FAILED.value,
                 canonical_metric_count=0,
                 failed_fact_count=0,
+            )
+
+        normalized_company = self.canonization_service.company_normalizer.normalize(
+            contract.document.company_reported_name
+        )
+        if normalized_company is not None:
+            self.document_version_repository.ensure_document_version(
+                result_document_id=result_document_id,
+                company_id=normalized_company.id,
+                reference_year=contract.document.reference_period.year,
+                reference_quarter=contract.document.reference_period.quarter,
             )
 
         try:

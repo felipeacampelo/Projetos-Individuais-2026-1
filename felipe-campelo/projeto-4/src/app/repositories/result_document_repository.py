@@ -5,7 +5,12 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
-from app.db.models import DocumentDiscoveryLink, PublicationSignal, ResultDocument
+from app.db.models import (
+    DocumentDiscoveryLink,
+    DocumentVersion,
+    PublicationSignal,
+    ResultDocument,
+)
 from app.domain.document_lifecycle import DocumentState
 
 
@@ -54,6 +59,7 @@ class ResultDocumentRepository:
             .where(ResultDocument.id == document_id)
             .options(
                 joinedload(ResultDocument.company),
+                joinedload(ResultDocument.version_entry).joinedload(DocumentVersion.version_group),
                 joinedload(ResultDocument.discovery_links)
                 .joinedload(DocumentDiscoveryLink.publication_signal)
                 .joinedload(PublicationSignal.publication_source),

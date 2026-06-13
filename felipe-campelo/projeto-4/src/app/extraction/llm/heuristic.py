@@ -59,14 +59,20 @@ class HeuristicExtractionClient(LLMExtractionClient):
         seen_metric_slugs: set[str] = set()
 
         for page in relevant_pages:
-            for line in self._iter_lines(page.text):
+            lines = self._iter_lines(page.text)
+            for index, line in enumerate(lines):
                 normalized_line = self._normalize(line)
+                context_line = self._build_context_line(lines, index)
                 for rule in METRIC_RULES:
                     if rule.slug in seen_metric_slugs:
                         continue
                     if not any(alias in normalized_line for alias in rule.aliases):
                         continue
-                    fact = self._build_fact(rule=rule, line=line, page_number=page.page_number)
+                    fact = self._build_fact(
+                        rule=rule,
+                        line=context_line,
+                        page_number=page.page_number,
+                    )
                     if fact is None:
                         continue
                     facts.append(fact)
@@ -177,6 +183,12 @@ class HeuristicExtractionClient(LLMExtractionClient):
     @staticmethod
     def _iter_lines(text: str) -> list[str]:
         return [line.strip() for line in text.splitlines() if line.strip()]
+
+    @staticmethod
+    def _build_context_line(lines: list[str], index: int) -> str:
+        current = lines[index]
+        next_line = lines[index + 1] if index + 1 < len(lines) else ""
+        return f"{current} {next_line}".strip()
 
     @staticmethod
     def _normalize(text: str) -> str:

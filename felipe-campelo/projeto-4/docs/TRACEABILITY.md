@@ -118,11 +118,15 @@ Artefatos:
 - `docs/adr/0002-centralized-semantic-source-of-truth.md`
 - `src/app/canonization/service.py`
 - `src/app/db/models/canonical_metric.py`
+- `src/app/db/models/result_document.py`
+- `src/app/repositories/document_version_repository.py`
 
 Como foi atendido:
 - a documentacao define uma unica superficie canonica por empresa e periodo
 - a camada de canonizacao persiste metricas canonicas separadas do bruto
 - a cobertura da consulta e explicita quando nao existe documento canonico
+- o sistema persiste `DocumentVersionGroup` e `DocumentVersion` por empresa+ano+trimestre
+- `GET /api/documentos` e `GET /api/documentos/{document_id}/linhagem` expõem periodo e numero de versao quando conhecidos
 
 ## 8. Criterios de avaliacao
 
@@ -142,6 +146,9 @@ Cobertura atual:
 - descoberta HTML desacoplada do layout exato
 - parser e chunking sem coordenadas fixas
 - extracao heuristica baseada em texto e evidencias por pagina
+- testes cobrindo dois formatos sintéticos distintos:
+  - linha unica no estilo tabela/resumo
+  - metrica e valor quebrados em linhas separadas no estilo slide
 
 Risco atual:
 - faltam dois fluxos PDF reais ponta a ponta demonstrados com arquivos de mercado reais
@@ -163,4 +170,4 @@ Cobertura atual:
 - cobertura explicita em `GET /api/conjuntura`
 
 Risco atual:
-- `DocumentVersionGroup` e `DocumentVersion` ainda nao foram implementados
+- a reavaliacao automatica que move um documento antigo para `superseded` ainda nao foi implementada

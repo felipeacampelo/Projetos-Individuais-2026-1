@@ -17,6 +17,7 @@ O servico monitora fontes de publicacao, detecta novos PDFs, deduplica por hash,
 - extracao semantica heuristica ponta a ponta para metricas iniciais do catalogo
 - normalizacao inicial de empresa, metrica, unidade e recortes
 - persistencia de metricas canonicas
+- versionamento de documentos por empresa e periodo
 - API REST para health, empresas, metricas, ingestao, documentos, fontes de publicacao, monitoramentos e conjuntura
 
 ## Estrutura
@@ -27,6 +28,7 @@ O servico monitora fontes de publicacao, detecta novos PDFs, deduplica por hash,
 - `docs/adr`: decisoes arquiteturais
 - `docs/TRACEABILITY.md`: mapa entre requisitos do enunciado e artefatos implementados
 - `docs/DEMO.md`: roteiro de demonstracao e checklist de entrega
+- `docs/REAL_SOURCES.md`: registro das fontes oficiais reais verificadas para a demo
 - `tests`: testes unitarios e fixtures
 - `CONTEXT.md`: glossario e modelo de dominio
 
@@ -38,15 +40,16 @@ Para correcao, a leitura recomendada e:
 2. `CONTEXT.md`
 3. `docs/TRACEABILITY.md`
 4. `docs/DEMO.md`
-5. `docs/specs/0001-pipeline-uda-ri-habitacional.md`
-6. `docs/specs/0002-api-contracts.md`
-7. `docs/specs/0003-semantic-contract-schema.md`
-8. `docs/specs/0004-ingestion-and-document-lifecycle.md`
-9. `docs/specs/0005-initial-housing-metric-catalog.md`
-10. `docs/specs/0006-implementation-architecture.md`
-11. `docs/specs/0007-implementation-backlog.md`
-12. `docs/adr/0001-versioned-result-documents.md`
-13. `docs/adr/0002-centralized-semantic-source-of-truth.md`
+5. `docs/REAL_SOURCES.md`
+6. `docs/specs/0001-pipeline-uda-ri-habitacional.md`
+7. `docs/specs/0002-api-contracts.md`
+8. `docs/specs/0003-semantic-contract-schema.md`
+9. `docs/specs/0004-ingestion-and-document-lifecycle.md`
+10. `docs/specs/0005-initial-housing-metric-catalog.md`
+11. `docs/specs/0006-implementation-architecture.md`
+12. `docs/specs/0007-implementation-backlog.md`
+13. `docs/adr/0001-versioned-result-documents.md`
+14. `docs/adr/0002-centralized-semantic-source-of-truth.md`
 
 ## Setup
 
@@ -84,6 +87,20 @@ uvicorn --app-dir src app.main:app --reload
 4. Consulte `GET /api/documentos` e `GET /api/documentos/{document_id}/linhagem` para ver a linhagem do PDF.
 5. Consulte `GET /api/conjuntura` para verificar cobertura canonica por periodo.
 
+## Validacao Manual com PDF Real
+
+Para validar um PDF oficial diretamente, sem depender da API:
+
+```zsh
+PYTHONPATH=src python -m app.tools.validate_real_pdf --url "URL_OFICIAL_DO_PDF" --document-type previa_operacional
+```
+
+Exemplo com URL oficial documentada:
+
+```zsh
+PYTHONPATH=src python -m app.tools.validate_real_pdf --url "https://api.mziq.com/mzfilemanager/v2/d/ada9bc2c-f7d0-4359-9eaf-851b679ab788/b9e3e792-da8b-5e49-f50f-4c097cf08623?origin=2" --document-type previa_operacional
+```
+
 ## Aderencia ao Enunciado
 
 ### Extracao automatizada e continua
@@ -119,6 +136,7 @@ uvicorn --app-dir src app.main:app --reload
 - a camada de extracao semantica com LLM esta estruturada, mas ainda nao foi ligada a um provedor real
 - a extracao semantica atual usa um cliente heuristico local para demonstracao, nao um provedor externo real
 - a demonstracao completa com dois layouts PDF reais ainda depende da inclusao de fixtures PDF reais adicionais e ampliacao das heuristicas
+- a reavaliacao automatica para substituir um documento canonico antigo por uma versao melhor ainda nao foi implementada
 
 ## Entregaveis
 
@@ -134,5 +152,5 @@ uvicorn --app-dir src app.main:app --reload
 ## Testes
 
 ```zsh
-PYTHONPATH=src pytest tests/unit/test_chunking_strategy.py tests/unit/test_document_lifecycle.py tests/unit/test_monitoring_job_service.py tests/unit/test_semantic_processing.py
+PYTHONPATH=src pytest tests/unit/test_chunking_strategy.py tests/unit/test_document_lifecycle.py tests/unit/test_monitoring_job_service.py tests/unit/test_semantic_processing.py tests/unit/test_document_version_repository.py
 ```

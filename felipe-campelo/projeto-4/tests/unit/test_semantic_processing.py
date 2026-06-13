@@ -64,6 +64,19 @@ def seed_company_and_metric_catalog(session: Session) -> None:
     session.commit()
 
 
+def seed_direcional_company(session: Session) -> None:
+    company = Company(slug="direcional", display_name="Direcional")
+    session.add(company)
+    session.flush()
+    session.add_all(
+        [
+            CompanyAlias(company_id=company.id, alias="direcional", alias_type="display_name"),
+            CompanyAlias(company_id=company.id, alias="direcional engenharia", alias_type="ri_name"),
+        ]
+    )
+    session.commit()
+
+
 def test_semantic_processing_canonicalizes_metrics_from_pdf() -> None:
     session = build_session()
     seed_company_and_metric_catalog(session)
@@ -100,6 +113,46 @@ def test_semantic_processing_canonicalizes_metrics_from_pdf() -> None:
     refreshed_document = session.get(ResultDocument, document.id)
     assert refreshed_document is not None
     assert refreshed_document.current_state == DocumentState.CANONICAL.value
+
+    metrics = session.scalars(select(models.CanonicalMetric).order_by(models.CanonicalMetric.id.asc())).all()
+    assert len(metrics) >= 2
+
+
+def test_semantic_processing_supports_slide_like_split_line_layout() -> None:
+    session = build_session()
+    seed_company_and_metric_catalog(session)
+    seed_direcional_company(session)
+    document = ResultDocument(
+        company_id=2,
+        document_type="documento_resultado",
+        source_url="https://ri.example.com/direcional-2t26.pdf",
+        effective_url="https://ri.example.com/direcional-2t26.pdf",
+        content_hash="def456",
+        file_size_bytes=2048,
+        current_state=DocumentState.OBSERVED.value,
+    )
+    session.add(document)
+    session.commit()
+
+    pdf_bytes = build_pdf_bytes(
+        [
+            "Direcional 2T26 Release Operacional",
+            "VSO",
+            "14,2%",
+            "Vendas Líquidas",
+            "R$ 320 milhões",
+        ]
+    )
+
+    result = DocumentSemanticProcessingService(session).process_document(
+        result_document_id=document.id,
+        content=pdf_bytes,
+        source_url=document.source_url,
+        document_type=document.document_type or "documento_resultado",
+    )
+
+    assert result.document_state == "canonical"
+    assert result.canonical_metric_count >= 2
 
     metrics = session.scalars(select(models.CanonicalMetric).order_by(models.CanonicalMetric.id.asc())).all()
     assert len(metrics) >= 2

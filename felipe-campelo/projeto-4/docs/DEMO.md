@@ -22,6 +22,17 @@ PYTHONPATH=src python -m app.seeds.load
 uvicorn --app-dir src app.main:app --reload
 ```
 
+## Fontes Oficiais Recomendadas
+
+Consultar tambem:
+
+- `docs/REAL_SOURCES.md`
+
+Paginas oficiais verificadas em 13 de junho de 2026:
+
+- MRV: `https://ri.mrv.com.br/informacoes-financeiras/central-de-resultados/`
+- Direcional: `https://ri.direcional.com.br/informacoes-financeiras/central-de-resultados/`
+
 ## Passo a Passo da Demo
 
 ### 1. Verificar saude do servico
@@ -39,6 +50,7 @@ Resultado esperado:
 - empresas `mrv` e `direcional`
 - catalogo inicial de metricas
 - uma fonte ativa por empresa seedada
+- as URLs seedadas devem apontar para as centrais oficiais corretas
 
 ### 3. Disparar monitoramento
 
@@ -73,7 +85,8 @@ Resultado esperado:
 
 Resultado esperado:
 - documentos recuperados ou lista vazia explicavel
-- cada documento com `source_url`, `content_hash` e sinais de descoberta associados
+- cada documento com `source_url`, `content_hash`, periodo e numero de versao quando conhecidos
+- cada documento com sinais de descoberta associados
 
 ### 6. Consultar superficie canonica
 
@@ -85,6 +98,19 @@ Resultado esperado neste estado do projeto:
 - quando houver canonizacao, a resposta deve trazer evidência com `page` e `snippet`
 - motivo explicito quando nao houver documento canonico
 
+### 7. Validar um PDF oficial diretamente
+
+Rodar:
+
+```zsh
+PYTHONPATH=src python -m app.tools.validate_real_pdf --url "https://api.mziq.com/mzfilemanager/v2/d/ada9bc2c-f7d0-4359-9eaf-851b679ab788/b9e3e792-da8b-5e49-f50f-4c097cf08623?origin=2" --document-type previa_operacional
+```
+
+Resultado esperado:
+- contrato semântico em JSON
+- `document.reference_period` inferido do PDF quando presente no texto
+- fatos iniciais extraídos com evidência por página
+
 ## Checklist de Entrega
 
 - `README.md` descreve escopo, setup, endpoints e limitacoes
@@ -94,6 +120,7 @@ Resultado esperado neste estado do projeto:
 - `docs/specs` documenta contratos e arquitetura
 - `docs/adr` registra decisoes arquiteturais
 - `alembic/versions` contem a migracao inicial
+- `alembic/versions` contem a migracao inicial e a migracao de versionamento de documentos
 - `src/app` contem o servico
 - `tests/unit` contem testes iniciais
 

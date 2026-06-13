@@ -36,13 +36,15 @@ def list_documents(
 
     data = []
     for document in documents:
-        year = ano if ano is not None else None
-        quarter = trimestre if trimestre is not None else None
+        version_group = document.version_entry.version_group if document.version_entry else None
+        year = version_group.reference_year if version_group is not None else ano
+        quarter = version_group.reference_quarter if version_group is not None else trimestre
         data.append(
             DocumentItemResponse(
                 document_id=f"doc_{document.id}",
                 company_slug=document.company.slug if document.company else None,
                 reference_period=DocumentReferencePeriodResponse(year=year, quarter=quarter),
+                version_number=document.version_entry.version_number if document.version_entry else None,
                 document_type=document.document_type,
                 status=document.current_state,
                 source_url=document.source_url,
@@ -84,6 +86,15 @@ def get_document_lineage(
     return DocumentLineageResponse(
         document_id=f"doc_{document.id}",
         company_slug=document.company.slug if document.company else None,
+        reference_period=(
+            DocumentReferencePeriodResponse(
+                year=document.version_entry.version_group.reference_year,
+                quarter=document.version_entry.version_group.reference_quarter,
+            )
+            if document.version_entry is not None
+            else None
+        ),
+        version_number=document.version_entry.version_number if document.version_entry else None,
         source_url=document.source_url,
         effective_url=document.effective_url,
         content_hash=document.content_hash,

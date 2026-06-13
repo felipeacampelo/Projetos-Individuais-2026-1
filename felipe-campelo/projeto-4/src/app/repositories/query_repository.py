@@ -8,6 +8,7 @@ from app.db.models import (
     CanonicalMetricCut,
     Company,
     CompanyAlias,
+    DocumentVersion,
     MetricCatalogItem,
     ResultDocument,
 )
@@ -96,7 +97,14 @@ class QueryRepository:
         status: str | None = None,
         canonical_only: bool = False,
     ) -> list[ResultDocument]:
-        stmt = select(ResultDocument).options(joinedload(ResultDocument.company)).order_by(ResultDocument.id.asc())
+        stmt = (
+            select(ResultDocument)
+            .options(
+                joinedload(ResultDocument.company),
+                joinedload(ResultDocument.version_entry).joinedload(DocumentVersion.version_group),
+            )
+            .order_by(ResultDocument.id.asc())
+        )
         if company_id is not None:
             stmt = stmt.where(ResultDocument.company_id == company_id)
         if status is not None:

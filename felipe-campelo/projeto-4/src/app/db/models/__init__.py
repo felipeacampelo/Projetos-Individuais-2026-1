@@ -7,7 +7,12 @@ from app.db.models.metric_catalog import MetricCatalogAlias, MetricCatalogItem
 from app.db.models.monitoring import MonitoringJob, PublicationSignal
 from app.db.models.publication_source import PublicationSource
 from app.db.models.reprocessing import ReprocessingRequest
-from app.db.models.result_document import DocumentDiscoveryLink, ResultDocument
+from app.db.models.result_document import (
+    DocumentDiscoveryLink,
+    DocumentVersion,
+    DocumentVersionGroup,
+    ResultDocument,
+)
 
 __all__ = [
     "CandidateFact",
@@ -17,6 +22,8 @@ __all__ = [
     "Company",
     "CompanyAlias",
     "DocumentDiscoveryLink",
+    "DocumentVersion",
+    "DocumentVersionGroup",
     "ExtractionEvidence",
     "ExtractionRun",
     "MetricCatalogItem",

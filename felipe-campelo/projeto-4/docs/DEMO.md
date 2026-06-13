@@ -154,6 +154,8 @@ Resultado esperado:
 - `tests/integration/test_pipeline_two_layouts_audit.py` prova dois layouts no pipeline com auditoria completa
 - `tests/unit/test_reprocessing_api.py` cobre a superfície operacional de reprocessamento
 - `tests/unit/test_extractions_api.py` cobre a superfície operacional de extrações persistidas
+- a submissao esta dentro de `felipe-campelo/projeto-4/`
+- existe Pull Request aberto no fork para entrega
 
 ## Pontos de Atencao para Correcao
 

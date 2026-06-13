@@ -175,6 +175,24 @@ export LLM_API_KEY="sua_chave"
 - documentacao de rastreabilidade e demonstracao
 - teste de integracao cobrindo dois layouts com trilha auditavel completa
 
+## Entrega
+
+Conforme o enunciado da disciplina, a submissao deve ficar dentro de uma pasta pessoal com a estrutura:
+
+```text
+felipe-campelo/projeto-4/
+```
+
+Para a entrega final:
+
+1. manter todo o projeto dentro de `felipe-campelo/projeto-4/`
+2. confirmar que a documentacao principal esta atualizada (`README.md`, `CONTEXT.md`, `docs/TRACEABILITY.md`, `docs/DEMO.md`)
+3. rodar os testes principais antes do envio
+4. abrir um Pull Request no fork com essa pasta como submissao do projeto
+
+Observacao:
+- a avaliacao deve seguir a documentacao de perto, entao o fluxo de leitura recomendado desta pasta deve ser preservado
+
 ## Testes
 
 ```zsh

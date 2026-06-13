@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
 
+from app.canonization.canonical_source_service import ReevaluateCanonicalSourceService
 from app.canonization.service import CanonizationService
 from app.domain.document_lifecycle import DocumentState
 from app.extraction.llm.heuristic import HeuristicExtractionClient
@@ -26,6 +27,7 @@ class DocumentSemanticProcessingService:
     def __init__(self, session: Session) -> None:
         self.session = session
         self.extraction_pipeline = SemanticExtractionPipeline(session=session, llm_client=HeuristicExtractionClient())
+        self.canonical_source_service = ReevaluateCanonicalSourceService(session)
         self.canonization_service = CanonizationService(session)
         self.document_lifecycle_repository = DocumentLifecycleRepository(session)
         self.document_version_repository = DocumentVersionRepository(session)
@@ -98,6 +100,13 @@ class DocumentSemanticProcessingService:
                 document_state=DocumentState.CANONICALIZATION_FAILED.value,
                 canonical_metric_count=0,
                 failed_fact_count=0,
+            )
+
+        if normalized_company is not None and canonization_result.document_state == DocumentState.CANONICAL.value:
+            self.canonical_source_service.reevaluate_scope(
+                company_id=normalized_company.id,
+                reference_year=contract.document.reference_period.year,
+                reference_quarter=contract.document.reference_period.quarter,
             )
         return DocumentSemanticProcessingResult(
             extraction_status=extraction_run.status,

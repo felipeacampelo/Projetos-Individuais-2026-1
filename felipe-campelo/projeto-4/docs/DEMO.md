@@ -87,6 +87,7 @@ Resultado esperado:
 - documentos recuperados ou lista vazia explicavel
 - cada documento com `source_url`, `content_hash`, periodo e numero de versao quando conhecidos
 - cada documento com sinais de descoberta associados
+- quando houver duas versoes do mesmo periodo, a mais antiga pode aparecer como `superseded`
 
 ### 6. Consultar superficie canonica
 
@@ -128,4 +129,5 @@ Resultado esperado:
 
 - o projeto esta forte em arquitetura, contratos, linhagem e auditoria
 - a parte ainda incompleta para o criterio maximo e a substituicao do extrator heuristico por integracao LLM real em dois PDFs reais diferentes
+- a reavaliacao canônica existe, mas ainda e simples quando duas versoes do mesmo periodo competem
 - na apresentacao, deixar isso explicito evita vender uma completude que o codigo ainda nao entrega

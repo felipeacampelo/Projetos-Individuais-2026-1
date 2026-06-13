@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.db.models import CanonicalMetric, CanonicalMetricCut
@@ -55,3 +55,23 @@ class CanonicalMetricRepository:
     def list_for_document(self, result_document_id: int) -> list[CanonicalMetric]:
         stmt = select(CanonicalMetric).where(CanonicalMetric.result_document_id == result_document_id)
         return list(self.session.scalars(stmt))
+
+    def list_for_scope(
+        self,
+        *,
+        company_id: int,
+        reference_year: int,
+        reference_quarter: int,
+    ) -> list[CanonicalMetric]:
+        stmt = select(CanonicalMetric).where(
+            CanonicalMetric.company_id == company_id,
+            CanonicalMetric.reference_year == reference_year,
+            CanonicalMetric.reference_quarter == reference_quarter,
+        )
+        return list(self.session.scalars(stmt))
+
+    def delete_for_document(self, result_document_id: int) -> None:
+        self.session.execute(
+            delete(CanonicalMetric).where(CanonicalMetric.result_document_id == result_document_id)
+        )
+        self.session.flush()

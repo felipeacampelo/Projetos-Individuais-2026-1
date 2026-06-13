@@ -136,7 +136,7 @@ PYTHONPATH=src python -m app.tools.validate_real_pdf --url "https://api.mziq.com
 - a camada de extracao semantica com LLM esta estruturada, mas ainda nao foi ligada a um provedor real
 - a extracao semantica atual usa um cliente heuristico local para demonstracao, nao um provedor externo real
 - a demonstracao completa com dois layouts PDF reais ainda depende da inclusao de fixtures PDF reais adicionais e ampliacao das heuristicas
-- a reavaliacao automatica para substituir um documento canonico antigo por uma versao melhor ainda nao foi implementada
+- a reavaliacao automatica por precedencia documental foi implementada de forma inicial, mas ainda sem politica completa de completude semantica comparativa
 
 ## Entregaveis
 
@@ -152,5 +152,5 @@ PYTHONPATH=src python -m app.tools.validate_real_pdf --url "https://api.mziq.com
 ## Testes
 
 ```zsh
-PYTHONPATH=src pytest tests/unit/test_chunking_strategy.py tests/unit/test_document_lifecycle.py tests/unit/test_monitoring_job_service.py tests/unit/test_semantic_processing.py tests/unit/test_document_version_repository.py
+PYTHONPATH=src pytest tests/unit/test_chunking_strategy.py tests/unit/test_document_lifecycle.py tests/unit/test_monitoring_job_service.py tests/unit/test_semantic_processing.py tests/unit/test_document_version_repository.py tests/unit/test_canonical_source_service.py
 ```

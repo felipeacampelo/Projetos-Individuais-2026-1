@@ -127,6 +127,7 @@ Como foi atendido:
 - a cobertura da consulta e explicita quando nao existe documento canonico
 - o sistema persiste `DocumentVersionGroup` e `DocumentVersion` por empresa+ano+trimestre
 - `GET /api/documentos` e `GET /api/documentos/{document_id}/linhagem` expõem periodo e numero de versao quando conhecidos
+- uma reavaliacao inicial por precedencia de tipo documental pode mover o documento anterior para `superseded`
 
 ## 8. Criterios de avaliacao
 
@@ -170,4 +171,4 @@ Cobertura atual:
 - cobertura explicita em `GET /api/conjuntura`
 
 Risco atual:
-- a reavaliacao automatica que move um documento antigo para `superseded` ainda nao foi implementada
+- a reavaliacao ainda nao compara completude semantica de forma sofisticada entre duas versoes do mesmo periodo

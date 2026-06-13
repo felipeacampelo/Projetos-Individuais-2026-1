@@ -32,4 +32,7 @@ class MonitoringScheduler:
         job_service = self.job_service_factory()
         if not isinstance(job_service, MonitoringJobService):
             return
-        job_service.create_job(scope_type="all", scope_value=None)
+        try:
+            job_service.run_job(scope_type="all", scope_value=None)
+        finally:
+            job_service.close()

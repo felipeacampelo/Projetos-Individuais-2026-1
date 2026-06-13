@@ -19,6 +19,7 @@ class DocumentRecoveryResult:
     content_hash: str | None
     effective_url: str | None
     file_size_bytes: int | None
+    content: bytes | None
 
 
 class DocumentRecoveryService:
@@ -52,6 +53,7 @@ class DocumentRecoveryService:
                 content_hash=None,
                 effective_url=None,
                 file_size_bytes=None,
+                content=None,
             )
 
         return self._persist_fetched_document(
@@ -87,6 +89,7 @@ class DocumentRecoveryService:
                 content_hash=content_hash,
                 effective_url=fetched.effective_url,
                 file_size_bytes=file_size_bytes,
+                content=fetched.content,
             )
 
         document = self.result_document_repository.create(
@@ -111,4 +114,5 @@ class DocumentRecoveryService:
             content_hash=content_hash,
             effective_url=fetched.effective_url,
             file_size_bytes=file_size_bytes,
+            content=fetched.content,
         )

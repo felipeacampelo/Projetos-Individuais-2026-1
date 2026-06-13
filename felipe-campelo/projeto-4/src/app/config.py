@@ -14,7 +14,9 @@ class Settings(BaseModel):
     app_env: str = Field(default="development")
     app_name: str = Field(default="pipeline-uda-ri-habitacional")
     app_version: str = Field(default="0.1.0")
-    database_url: str = Field(default="postgresql://postgres:postgres@localhost:5432/pipeline_uda")
+    database_url: str = Field(
+        default="postgresql+psycopg://postgres:postgres@localhost:5432/pipeline_uda"
+    )
     llm_provider: str = Field(default="openai")
     llm_api_key: str = Field(default="")
     polling_enabled: bool = Field(default=False)
@@ -30,7 +32,7 @@ class Settings(BaseModel):
             "app_version": os.getenv("APP_VERSION", "0.1.0"),
             "database_url": os.getenv(
                 "DATABASE_URL",
-                "postgresql://postgres:postgres@localhost:5432/pipeline_uda",
+                "postgresql+psycopg://postgres:postgres@localhost:5432/pipeline_uda",
             ),
             "llm_provider": os.getenv("LLM_PROVIDER", "openai"),
             "llm_api_key": os.getenv("LLM_API_KEY", ""),

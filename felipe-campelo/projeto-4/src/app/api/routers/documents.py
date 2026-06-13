@@ -1,15 +1,18 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_database_session
 from app.api.schemas.documents import (
+    DocumentLineageResponse,
+    DocumentLineageSignalResponse,
     DocumentItemResponse,
     DocumentListResponse,
     DocumentReferencePeriodResponse,
 )
 from app.repositories.query_repository import QueryRepository
+from app.repositories.result_document_repository import ResultDocumentRepository
 
 router = APIRouter(prefix="/api/documentos", tags=["documentos"])
 
@@ -50,3 +53,40 @@ def list_documents(
         )
 
     return DocumentListResponse(data=data)
+
+
+@router.get("/{document_id}/linhagem", response_model=DocumentLineageResponse)
+def get_document_lineage(
+    document_id: int,
+    session: Session = Depends(get_database_session),
+) -> DocumentLineageResponse:
+    document = ResultDocumentRepository(session).get_by_id_with_lineage(document_id)
+    if document is None:
+        raise HTTPException(status_code=404, detail="unknown_document")
+
+    lineage_signals = []
+    for link in document.discovery_links:
+        signal = link.publication_signal
+        lineage_signals.append(
+            DocumentLineageSignalResponse(
+                signal_id=f"signal_{signal.id}",
+                publication_source_id=f"source_{signal.publication_source_id}",
+                publication_source_name=(
+                    signal.publication_source.name if signal.publication_source is not None else None
+                ),
+                signal_url=signal.signal_url,
+                signal_title=signal.signal_title,
+                discovered_at=signal.discovered_at,
+                processing_status=signal.processing_status,
+            )
+        )
+
+    return DocumentLineageResponse(
+        document_id=f"doc_{document.id}",
+        company_slug=document.company.slug if document.company else None,
+        source_url=document.source_url,
+        effective_url=document.effective_url,
+        content_hash=document.content_hash,
+        status=document.current_state,
+        lineage_signals=lineage_signals,
+    )

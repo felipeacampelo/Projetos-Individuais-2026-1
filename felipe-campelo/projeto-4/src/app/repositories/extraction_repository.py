@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.canonization.normalizers.metric import MetricNormalizer
 from app.db.models import CandidateFact, CandidateFactCut, ExtractionEvidence, ExtractionRun
 from app.extraction.contracts.semantic_contract import SemanticExtractionContract
 
@@ -45,6 +47,15 @@ class ExtractionRepository:
         self.session.flush()
         return run
 
+    def get_latest_run_for_document(self, result_document_id: int) -> ExtractionRun | None:
+        stmt = (
+            select(ExtractionRun)
+            .where(ExtractionRun.result_document_id == result_document_id)
+            .order_by(ExtractionRun.id.desc())
+            .limit(1)
+        )
+        return self.session.scalar(stmt)
+
     def persist_contract_facts(
         self,
         *,
@@ -85,3 +96,31 @@ class ExtractionRepository:
                 )
             )
         self.session.flush()
+
+    def get_document_metric_evidence(
+        self,
+        *,
+        result_document_id: int,
+        metric_slug: str,
+    ) -> ExtractionEvidence | None:
+        stmt = (
+            select(CandidateFact)
+            .join(ExtractionRun, ExtractionRun.id == CandidateFact.extraction_run_id)
+            .where(ExtractionRun.result_document_id == result_document_id)
+            .order_by(CandidateFact.id.asc())
+        )
+        metric_normalizer = MetricNormalizer(self.session)
+        for candidate_fact in self.session.scalars(stmt):
+            normalized = metric_normalizer.normalize(candidate_fact.reported_metric_name)
+            if normalized is None:
+                continue
+            if normalized.metric_catalog_item.slug != metric_slug:
+                continue
+            evidence_stmt = (
+                select(ExtractionEvidence)
+                .where(ExtractionEvidence.candidate_fact_id == candidate_fact.id)
+                .order_by(ExtractionEvidence.id.asc())
+                .limit(1)
+            )
+            return self.session.scalar(evidence_stmt)
+        return None

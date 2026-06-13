@@ -3,9 +3,9 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
-from app.db.models import DocumentDiscoveryLink, ResultDocument
+from app.db.models import DocumentDiscoveryLink, PublicationSignal, ResultDocument
 from app.domain.document_lifecycle import DocumentState
 
 
@@ -47,6 +47,19 @@ class ResultDocumentRepository:
 
     def get_by_id(self, document_id: int) -> ResultDocument | None:
         return self.session.get(ResultDocument, document_id)
+
+    def get_by_id_with_lineage(self, document_id: int) -> ResultDocument | None:
+        stmt = (
+            select(ResultDocument)
+            .where(ResultDocument.id == document_id)
+            .options(
+                joinedload(ResultDocument.company),
+                joinedload(ResultDocument.discovery_links)
+                .joinedload(DocumentDiscoveryLink.publication_signal)
+                .joinedload(PublicationSignal.publication_source),
+            )
+        )
+        return self.session.scalar(stmt)
 
     def mark_last_seen_and_state(
         self,

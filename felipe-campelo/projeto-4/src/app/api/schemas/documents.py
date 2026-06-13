@@ -24,3 +24,23 @@ class DocumentItemResponse(BaseModel):
 
 class DocumentListResponse(BaseModel):
     data: list[DocumentItemResponse]
+
+
+class DocumentLineageSignalResponse(BaseModel):
+    signal_id: str
+    publication_source_id: str | None = None
+    publication_source_name: str | None = None
+    signal_url: str
+    signal_title: str | None = None
+    discovered_at: datetime | None = None
+    processing_status: str | None = None
+
+
+class DocumentLineageResponse(BaseModel):
+    document_id: str
+    company_slug: str | None = None
+    source_url: str
+    effective_url: str
+    content_hash: str
+    status: str
+    lineage_signals: list[DocumentLineageSignalResponse]

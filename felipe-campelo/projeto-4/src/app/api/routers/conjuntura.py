@@ -17,6 +17,7 @@ from app.api.schemas.conjuntura import (
     EvidenceResponse,
     ReferencePeriodResponse,
 )
+from app.repositories.extraction_repository import ExtractionRepository
 from app.repositories.query_repository import QueryRepository
 
 router = APIRouter(prefix="/api/conjuntura", tags=["conjuntura"])
@@ -50,6 +51,7 @@ def get_conjuntura(
         metric_catalog_item_id=metric_catalog_item.id if metric_catalog_item else None,
     )
     document = repository.get_canonical_document_for_scope(company_id=company.id, year=ano, quarter=trimestre)
+    extraction_repository = ExtractionRepository(session)
 
     filtered_data: list[CanonicalMetricResponse] = []
     for metric in metrics:
@@ -58,6 +60,10 @@ def get_conjuntura(
             continue
         if valor_recorte is not None and not any(cut.value == valor_recorte for cut in cuts):
             continue
+        evidence = extraction_repository.get_document_metric_evidence(
+            result_document_id=metric.result_document_id,
+            metric_slug=metric.metric_catalog_item.slug,
+        )
         filtered_data.append(
             CanonicalMetricResponse(
                 metric_slug=metric.metric_catalog_item.slug,
@@ -71,7 +77,11 @@ def get_conjuntura(
                     CanonicalMetricCutResponse(dimension=cut.dimension, value=cut.value)
                     for cut in cuts
                 ],
-                evidence=EvidenceResponse(page=None, section=None, snippet=None),
+                evidence=EvidenceResponse(
+                    page=evidence.page_number if evidence is not None else None,
+                    section=evidence.section_label if evidence is not None else None,
+                    snippet=evidence.snippet if evidence is not None else None,
+                ),
             )
         )
 

@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.db import models  # noqa: F401
 from app.db.base import Base
-from app.db.models import Company, MetricCatalogItem, ResultDocument
+from app.db.models import CanonicalMetric, Company, MetricCatalogItem, ResultDocument
 from app.canonization.canonical_source_service import ReevaluateCanonicalSourceService
 from app.repositories.canonical_metric_repository import CanonicalMetricRepository
 
@@ -87,8 +87,13 @@ def test_new_higher_precedence_document_supersedes_previous_canonical() -> None:
     assert decision is not None
     assert decision.winning_document_id == new_document.id
     assert old_document.id in decision.superseded_document_ids
+    assert decision.deleted_metric_count == 1
 
     refreshed_old = session.get(ResultDocument, old_document.id)
     refreshed_new = session.get(ResultDocument, new_document.id)
     assert refreshed_old is not None and refreshed_old.current_state == "superseded"
     assert refreshed_new is not None and refreshed_new.current_state == "canonical"
+
+    remaining_metrics = session.query(CanonicalMetric).order_by(CanonicalMetric.id.asc()).all()
+    assert len(remaining_metrics) == 1
+    assert remaining_metrics[0].result_document_id == new_document.id

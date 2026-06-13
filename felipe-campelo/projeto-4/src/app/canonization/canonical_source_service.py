@@ -16,6 +16,7 @@ from app.repositories.result_document_repository import ResultDocumentRepository
 class CanonicalSourceDecision:
     winning_document_id: int
     superseded_document_ids: list[int]
+    deleted_metric_count: int = 0
 
 
 class ReevaluateCanonicalSourceService:
@@ -57,14 +58,18 @@ class ReevaluateCanonicalSourceService:
             return CanonicalSourceDecision(
                 winning_document_id=only_document.id,
                 superseded_document_ids=[],
+                deleted_metric_count=0,
             )
 
         winner = self._pick_winner(list(documents_by_id.values()))
         superseded_ids: list[int] = []
+        deleted_metric_count = 0
         for document in documents_by_id.values():
             if document.id == winner.id:
                 self.document_lifecycle_repository.force_state(document, DocumentState.CANONICAL)
                 continue
+            deleted_metric_count += len(self.canonical_metric_repository.list_for_document(document.id))
+            self.canonical_metric_repository.delete_for_document(document.id)
             self.document_lifecycle_repository.force_state(document, DocumentState.SUPERSEDED)
             superseded_ids.append(document.id)
 
@@ -72,6 +77,7 @@ class ReevaluateCanonicalSourceService:
         return CanonicalSourceDecision(
             winning_document_id=winner.id,
             superseded_document_ids=superseded_ids,
+            deleted_metric_count=deleted_metric_count,
         )
 
     def _pick_winner(self, documents: list[ResultDocument]) -> ResultDocument:

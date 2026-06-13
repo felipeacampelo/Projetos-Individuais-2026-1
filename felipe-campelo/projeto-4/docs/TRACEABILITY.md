@@ -150,6 +150,7 @@ Cobertura atual:
 - testes cobrindo dois formatos sintéticos distintos:
   - linha unica no estilo tabela/resumo
   - metrica e valor quebrados em linhas separadas no estilo slide
+- teste de integracao `tests/integration/test_pipeline_two_layouts_audit.py` cobre os dois layouts passando pelo pipeline completo
 
 Risco atual:
 - faltam dois fluxos PDF reais ponta a ponta demonstrados com arquivos de mercado reais
@@ -170,6 +171,7 @@ Cobertura atual:
 - API publica foi documentada
 - cobertura explicita em `GET /api/conjuntura`
 - observabilidade basica com logs estruturados correlacionados e motivos explicitos de falha em `GET /api/monitoramentos`
+- reavaliacao canônica agora remove métricas do documento supersedido para manter uma única fonte canônica ativa por empresa e período
 
 Risco atual:
 - a reavaliacao ainda nao compara completude semantica de forma sofisticada entre duas versoes do mesmo periodo

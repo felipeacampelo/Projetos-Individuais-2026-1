@@ -154,9 +154,16 @@ PYTHONPATH=src python -m app.tools.validate_real_pdf --url "https://api.mziq.com
 - ADRs e especificacoes de arquitetura
 - testes unitarios iniciais
 - documentacao de rastreabilidade e demonstracao
+- teste de integracao cobrindo dois layouts com trilha auditavel completa
 
 ## Testes
 
 ```zsh
 PYTHONPATH=src pytest tests/unit/test_chunking_strategy.py tests/unit/test_document_lifecycle.py tests/unit/test_monitoring_job_service.py tests/unit/test_semantic_processing.py tests/unit/test_document_version_repository.py tests/unit/test_canonical_source_service.py
+```
+
+Teste de integracao recomendado para demonstracao do pipeline com dois layouts:
+
+```zsh
+PYTHONPATH=src pytest tests/integration/test_pipeline_two_layouts_audit.py
 ```

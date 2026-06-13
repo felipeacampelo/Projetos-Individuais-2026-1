@@ -349,8 +349,10 @@ class MonitoringJobService:
         normalized = signal_title.strip().lower()
         if "prévia operacional" in normalized or "previa operacional" in normalized:
             return "previa_operacional"
-        if "resultado" in normalized or "release" in normalized:
-            return "documento_resultado"
+        if "apresentação" in normalized or "apresentacao" in normalized:
+            return "apresentacao_resultados"
+        if "resultado" in normalized or "release" in normalized or "itr" in normalized:
+            return "documento_resultado_trimestral"
         return None
 
     @staticmethod

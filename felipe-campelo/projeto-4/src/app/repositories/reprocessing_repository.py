@@ -48,10 +48,39 @@ class ReprocessingRepository:
         self.session.flush()
         return request
 
-    def list_documents_eligible_for_material_reprocessing(self) -> list[ResultDocument]:
+    def list_documents_eligible_for_material_reprocessing(
+        self,
+        *,
+        semantic_contract_version: str,
+        normalization_knowledge_version: str,
+    ) -> list[ResultDocument]:
         stmt = select(ResultDocument).where(
             ResultDocument.current_state.in_(
                 ["recovery_failed", "interpretation_failed", "canonicalization_failed", "canonical"]
             )
         )
-        return list(self.session.scalars(stmt))
+        documents = list(self.session.scalars(stmt))
+        return [
+            document
+            for document in documents
+            if self.requires_material_reprocessing(
+                document=document,
+                semantic_contract_version=semantic_contract_version,
+                normalization_knowledge_version=normalization_knowledge_version,
+            )
+        ]
+
+    @staticmethod
+    def requires_material_reprocessing(
+        *,
+        document: ResultDocument,
+        semantic_contract_version: str,
+        normalization_knowledge_version: str,
+    ) -> bool:
+        if document.current_state in {"recovery_failed", "interpretation_failed"}:
+            return True
+        if document.contract_version_used != semantic_contract_version:
+            return True
+        if document.normalization_version_used != normalization_knowledge_version:
+            return True
+        return False

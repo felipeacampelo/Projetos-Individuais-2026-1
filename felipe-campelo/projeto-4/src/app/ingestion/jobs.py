@@ -48,7 +48,9 @@ class MonitoringJobService:
         self.document_semantic_processing_service = DocumentSemanticProcessingService(session)
         self.extraction_repository = ExtractionRepository(session)
         self.logger = StructuredLogger("pipeline_uda.monitoring")
-        self.semantic_contract_version = semantic_contract_version or get_settings().semantic_contract_version
+        settings = get_settings()
+        self.semantic_contract_version = semantic_contract_version or settings.semantic_contract_version
+        self.normalization_knowledge_version = settings.normalization_knowledge_version
 
     def close(self) -> None:
         self.session.close()
@@ -422,8 +424,11 @@ class MonitoringJobService:
         if force_reprocess:
             return True
 
-        latest_run = self.extraction_repository.get_latest_run_for_document(result_document_id)
-        if latest_run is None:
+        document = self.document_semantic_processing_service.result_document_repository.get_by_id(result_document_id)
+        if document is None:
             return True
 
-        return latest_run.contract_version != self.semantic_contract_version
+        return (
+            document.contract_version_used != self.semantic_contract_version
+            or document.normalization_version_used != self.normalization_knowledge_version
+        )

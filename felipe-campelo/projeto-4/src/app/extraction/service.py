@@ -81,6 +81,10 @@ class DocumentSemanticProcessingService:
                 failure_reason="missing_extraction_run_after_pipeline",
             )
 
+        document.contract_version_used = extraction_run.contract_version
+        self.session.add(document)
+        self.session.flush()
+
         normalized_company = self.canonization_service.company_normalizer.normalize(
             contract.document.company_reported_name
         )

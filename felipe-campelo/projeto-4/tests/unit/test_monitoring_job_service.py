@@ -311,6 +311,8 @@ def test_duplicate_content_does_not_reprocess_when_contract_version_is_current()
         content_hash=hashlib.sha256(b"same-pdf-content").hexdigest(),
         file_size_bytes=len(b"same-pdf-content"),
         current_state="canonical",
+        contract_version_used="1.0.0",
+        normalization_version_used="1.0.0",
     )
     session.add(existing_document)
     session.flush()
@@ -370,6 +372,8 @@ def test_duplicate_content_reprocesses_when_force_reprocess_is_true() -> None:
         content_hash=hashlib.sha256(b"same-pdf-content").hexdigest(),
         file_size_bytes=len(b"same-pdf-content"),
         current_state="canonical",
+        contract_version_used="1.0.0",
+        normalization_version_used="1.0.0",
     )
     session.add(existing_document)
     session.flush()
@@ -413,6 +417,68 @@ def test_duplicate_content_reprocesses_when_force_reprocess_is_true() -> None:
     service.document_semantic_processing_service = semantic_service
 
     result = service.run_job(scope_type="company", scope_value="mrv", force_reprocess=True)
+
+    assert result.duplicate_document_count == 1
+    assert len(semantic_service.calls) == 1
+
+
+def test_duplicate_content_reprocesses_when_normalization_version_changes() -> None:
+    session = build_session()
+    company = seed_company_and_source(session)
+    existing_document = ResultDocument(
+        company_id=company.id,
+        document_type="previa_operacional",
+        source_url="https://ri.example.com/docs/previa-1.pdf",
+        effective_url="https://ri.example.com/docs/previa-1.pdf",
+        content_hash=hashlib.sha256(b"same-pdf-content").hexdigest(),
+        file_size_bytes=len(b"same-pdf-content"),
+        current_state="canonical",
+        contract_version_used="1.0.0",
+        normalization_version_used="0.9.0",
+    )
+    session.add(existing_document)
+    session.flush()
+    session.add(
+        ExtractionRun(
+            result_document_id=existing_document.id,
+            contract_version="1.0.0",
+            llm_provider="openai",
+            llm_model="heuristic",
+            status="canonicalized",
+            raw_contract_payload={},
+        )
+    )
+    session.commit()
+    html = """
+    <html>
+      <body>
+        <a href="/docs/previa-1.pdf">Prévia Operacional 1T26</a>
+      </body>
+    </html>
+    """
+    semantic_service = StubSemanticProcessingService(
+        DocumentSemanticProcessingResult(
+            extraction_status="canonicalized",
+            document_state="canonical",
+            canonical_metric_count=2,
+            failed_fact_count=0,
+            extraction_run_id=1,
+        )
+    )
+    service = MonitoringJobService(
+        session,
+        results_page_fetcher=StubResultsPageFetcher({"https://ri.example.com/resultados": html}),
+        document_fetcher=StubDocumentFetcher(
+            {
+                "https://ri.example.com/docs/previa-1.pdf": b"same-pdf-content",
+            }
+        ),
+        semantic_contract_version="1.0.0",
+    )
+    service.document_semantic_processing_service = semantic_service
+    service.normalization_knowledge_version = "1.0.0"
+
+    result = service.run_job(scope_type="company", scope_value="mrv")
 
     assert result.duplicate_document_count == 1
     assert len(semantic_service.calls) == 1

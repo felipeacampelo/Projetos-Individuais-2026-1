@@ -3,7 +3,15 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db.models import Company, CompanyAlias, MetricCatalogAlias, MetricCatalogItem, PublicationSource
+from app.config import get_settings
+from app.db.models import (
+    Company,
+    CompanyAlias,
+    MetricCatalogAlias,
+    MetricCatalogItem,
+    NormalizationKnowledgeVersion,
+    PublicationSource,
+)
 from app.seeds.companies import COMPANY_SEED_DATA
 from app.seeds.metric_catalog import METRIC_CATALOG_SEED_DATA
 from app.seeds.publication_sources import PUBLICATION_SOURCE_SEED_DATA
@@ -90,8 +98,26 @@ def seed_publication_sources(session: Session) -> None:
         )
 
 
+def seed_normalization_knowledge_version(session: Session) -> None:
+    settings = get_settings()
+    existing = session.scalar(
+        select(NormalizationKnowledgeVersion).where(
+            NormalizationKnowledgeVersion.version == settings.normalization_knowledge_version
+        )
+    )
+    if existing is None:
+        session.add(
+            NormalizationKnowledgeVersion(
+                version=settings.normalization_knowledge_version,
+                description="Active normalization knowledge version from application settings",
+                is_active=True,
+            )
+        )
+
+
 def run_all_seeds(session: Session) -> None:
     seed_companies(session)
     seed_metric_catalog(session)
     seed_publication_sources(session)
+    seed_normalization_knowledge_version(session)
     session.commit()

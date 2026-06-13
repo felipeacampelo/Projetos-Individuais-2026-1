@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.canonization.evaluators.completeness import SemanticCompletenessEvaluator
 from app.canonization.evaluators.meaning_change import MeaningChangeGuard
 from app.canonization.normalizers.company import CompanyNormalizer
@@ -29,6 +30,7 @@ class CanonizationResult:
 class CanonizationService:
     def __init__(self, session: Session) -> None:
         self.session = session
+        self.settings = get_settings()
         self.company_normalizer = CompanyNormalizer(session)
         self.metric_normalizer = MetricNormalizer(session)
         self.unit_normalizer = UnitNormalizer()
@@ -47,6 +49,12 @@ class CanonizationService:
         result_document_id: int,
         current_document_state: str,
     ) -> CanonizationResult:
+        document = self.result_document_repository.get_by_id(result_document_id)
+        if document is not None:
+            document.normalization_version_used = self.settings.normalization_knowledge_version
+            self.session.add(document)
+            self.session.flush()
+
         if not self.completeness_evaluator.is_document_complete(contract.document, contract.facts):
             self._sync_document_state(result_document_id, current_document_state, DocumentState.CANONICALIZATION_FAILED)
             return CanonizationResult(

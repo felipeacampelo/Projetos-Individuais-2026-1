@@ -125,6 +125,7 @@ Resultado esperado:
 - `alembic/versions` contem a migracao inicial
 - `alembic/versions` contem a migracao inicial e a migracao de versionamento de documentos
 - `alembic/versions` contem a migracao de auditoria de falhas de monitoramento
+- `alembic/versions` contem a migracao de metadados de versao usados no reprocessamento material
 - `src/app` contem o servico
 - `tests/unit` contem testes iniciais
 - `tests/integration/test_pipeline_two_layouts_audit.py` prova dois layouts no pipeline com auditoria completa
@@ -133,6 +134,7 @@ Resultado esperado:
 
 - o projeto esta forte em arquitetura, contratos, linhagem e auditoria
 - existe uma prova automatizada de dois layouts distintos entrando no pipeline com versionamento, evidência e escolha de fonte canônica
+- o pipeline já evita reprocessamento cego de duplicatas sem mudança material de contrato ou normalização
 - a parte ainda incompleta para o criterio maximo e a substituicao do extrator heuristico por integracao LLM real em dois PDFs reais diferentes
 - a reavaliacao canônica existe, mas ainda e simples quando duas versoes do mesmo periodo competem
 - na apresentacao, deixar isso explicito evita vender uma completude que o codigo ainda nao entrega

@@ -27,6 +27,8 @@ class ResultDocument(Base):
     file_size_bytes: Mapped[int] = mapped_column(BigInteger)
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     current_state: Mapped[str] = mapped_column(String(50))
+    contract_version_used: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    normalization_version_used: Mapped[str | None] = mapped_column(String(50), nullable=True)
     first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 

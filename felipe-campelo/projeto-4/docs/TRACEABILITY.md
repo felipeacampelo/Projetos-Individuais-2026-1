@@ -173,6 +173,7 @@ Cobertura atual:
 - observabilidade basica com logs estruturados correlacionados e motivos explicitos de falha em `GET /api/monitoramentos`
 - reavaliacao canônica agora remove métricas do documento supersedido para manter uma única fonte canônica ativa por empresa e período
 - o documento persiste `contract_version_used` e `normalization_version_used`, e isso já alimenta elegibilidade de reprocessamento material
+- pedidos pendentes de reprocessamento agora têm executor em background com status operacional auditável
 
 Risco atual:
 - a reavaliacao ainda nao compara completude semantica de forma sofisticada entre duas versoes do mesmo periodo

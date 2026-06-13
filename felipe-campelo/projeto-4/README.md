@@ -110,6 +110,7 @@ PYTHONPATH=src python -m app.tools.validate_real_pdf --url "https://api.mziq.com
 - a deteccao inicial usa polling em paginas de resultados
 - `force_reprocess=true` reaproveita documentos duplicados apenas quando explicitamente solicitado ou quando a versao do contrato semantico mudou
 - documentos persistem `contract_version_used` e `normalization_version_used` para decidir elegibilidade de reprocessamento material
+- o scheduler tambem executa pedidos pendentes de `ReprocessingRequest` em background
 
 ### Idempotencia e evitar duplicidade
 
@@ -145,7 +146,7 @@ PYTHONPATH=src python -m app.tools.validate_real_pdf --url "https://api.mziq.com
 - a extracao semantica atual usa um cliente heuristico local para demonstracao, nao um provedor externo real
 - a demonstracao completa com dois layouts PDF reais ainda depende da inclusao de fixtures PDF reais adicionais e ampliacao das heuristicas
 - a reavaliacao automatica por precedencia documental foi implementada de forma inicial, mas ainda sem politica completa de completude semantica comparativa
-- o reprocessamento material ja considera mudanca de `semantic_contract_version` e `normalization_knowledge_version`, mas ainda nao executa uma fila dedicada de replay em background
+- o reprocessamento material ja considera mudanca de `semantic_contract_version` e `normalization_knowledge_version`, e agora executa pedidos pendentes em background por replay do PDF de origem
 
 ## Entregaveis
 

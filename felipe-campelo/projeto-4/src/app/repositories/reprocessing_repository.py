@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.models import ReprocessingRequest, ResultDocument
+
+
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 class ReprocessingRepository:
@@ -42,8 +48,26 @@ class ReprocessingRepository:
         stmt = select(ReprocessingRequest).where(ReprocessingRequest.status == "pending")
         return list(self.session.scalars(stmt))
 
+    def mark_processing(self, request: ReprocessingRequest) -> ReprocessingRequest:
+        request.status = "processing"
+        request.started_at = utc_now()
+        request.error_message = None
+        self.session.add(request)
+        self.session.flush()
+        return request
+
     def mark_completed(self, request: ReprocessingRequest) -> ReprocessingRequest:
         request.status = "completed"
+        request.finished_at = utc_now()
+        request.error_message = None
+        self.session.add(request)
+        self.session.flush()
+        return request
+
+    def mark_failed(self, request: ReprocessingRequest, error_message: str) -> ReprocessingRequest:
+        request.status = "failed"
+        request.finished_at = utc_now()
+        request.error_message = error_message
         self.session.add(request)
         self.session.flush()
         return request

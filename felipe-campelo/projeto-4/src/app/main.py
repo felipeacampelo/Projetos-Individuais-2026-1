@@ -12,6 +12,7 @@ from app.api.routers.ingest import router as ingest_router
 from app.api.routers.metrics import router as metrics_router
 from app.api.routers.monitoring import router as monitoring_router
 from app.api.routers.publication_sources import router as publication_sources_router
+from app.canonization.reprocessing_executor import ReprocessingExecutor
 from app.config import get_settings
 from app.db.session import SessionLocal
 from app.ingestion.jobs import MonitoringJobService
@@ -23,10 +24,15 @@ def _build_monitoring_job_service() -> MonitoringJobService:
     return MonitoringJobService(session)
 
 
+def _build_reprocessing_executor() -> ReprocessingExecutor:
+    session = SessionLocal()
+    return ReprocessingExecutor(session)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = get_settings()
-    scheduler = MonitoringScheduler(settings, _build_monitoring_job_service)
+    scheduler = MonitoringScheduler(settings, _build_monitoring_job_service, _build_reprocessing_executor)
     scheduler.start()
     app.state.monitoring_scheduler = scheduler
     try:

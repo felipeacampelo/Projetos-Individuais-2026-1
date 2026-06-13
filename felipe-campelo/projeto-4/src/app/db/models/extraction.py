@@ -31,6 +31,7 @@ class ExtractionRun(Base):
         back_populates="extraction_run",
         cascade="all, delete-orphan",
     )
+    result_document: Mapped["ResultDocument"] = relationship()
 
 
 class CandidateFact(Base):

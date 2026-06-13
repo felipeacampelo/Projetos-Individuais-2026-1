@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from app.api.routers.companies import router as companies_router
 from app.api.routers.conjuntura import router as conjuntura_router
 from app.api.routers.documents import router as documents_router
+from app.api.routers.extractions import router as extractions_router
 from app.api.routers.health import router as health_router
 from app.api.routers.ingest import router as ingest_router
 from app.api.routers.metrics import router as metrics_router
@@ -54,6 +55,7 @@ def create_app() -> FastAPI:
     app.include_router(companies_router)
     app.include_router(conjuntura_router)
     app.include_router(documents_router)
+    app.include_router(extractions_router)
     app.include_router(publication_sources_router)
     app.include_router(monitoring_router)
     app.include_router(reprocessing_router)

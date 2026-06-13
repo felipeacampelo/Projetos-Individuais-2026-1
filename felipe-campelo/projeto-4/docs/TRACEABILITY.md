@@ -176,6 +176,7 @@ Cobertura atual:
 - o documento persiste `contract_version_used` e `normalization_version_used`, e isso já alimenta elegibilidade de reprocessamento material
 - pedidos pendentes de reprocessamento agora têm executor em background com status operacional auditável
 - a API operacional agora expõe a fila de reprocessamento e o detalhamento por pedido
+- a API operacional agora expõe `ExtractionRun` com fatos candidatos e evidências para auditoria semântica
 
 Risco atual:
 - a reavaliacao ainda nao compara completude semantica de forma sofisticada entre duas versoes do mesmo periodo

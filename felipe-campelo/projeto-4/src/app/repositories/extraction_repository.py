@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.canonization.normalizers.metric import MetricNormalizer
 from app.db.models import CandidateFact, CandidateFactCut, ExtractionEvidence, ExtractionRun
@@ -53,6 +53,28 @@ class ExtractionRepository:
             .where(ExtractionRun.result_document_id == result_document_id)
             .order_by(ExtractionRun.id.desc())
             .limit(1)
+        )
+        return self.session.scalar(stmt)
+
+    def list_runs(self, *, result_document_id: int | None = None) -> list[ExtractionRun]:
+        stmt = (
+            select(ExtractionRun)
+            .options(joinedload(ExtractionRun.result_document))
+            .order_by(ExtractionRun.id.desc())
+        )
+        if result_document_id is not None:
+            stmt = stmt.where(ExtractionRun.result_document_id == result_document_id)
+        return list(self.session.scalars(stmt))
+
+    def get_run_detail(self, extraction_run_id: int) -> ExtractionRun | None:
+        stmt = (
+            select(ExtractionRun)
+            .where(ExtractionRun.id == extraction_run_id)
+            .options(
+                joinedload(ExtractionRun.result_document),
+                joinedload(ExtractionRun.candidate_facts).joinedload(CandidateFact.cuts),
+                joinedload(ExtractionRun.candidate_facts).joinedload(CandidateFact.evidence_items),
+            )
         )
         return self.session.scalar(stmt)
 

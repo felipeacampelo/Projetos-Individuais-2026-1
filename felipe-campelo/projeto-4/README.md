@@ -76,6 +76,8 @@ uvicorn --app-dir src app.main:app --reload
 - `GET /api/monitoramentos/{job_id}`
 - `GET /api/reprocessamentos`
 - `GET /api/reprocessamentos/{request_id}`
+- `GET /api/extracoes`
+- `GET /api/extracoes/{extraction_id}`
 - `POST /api/ingest/run`
 - `GET /api/documentos`
 - `GET /api/documentos/{document_id}/linhagem`
@@ -145,6 +147,7 @@ export LLM_API_KEY="sua_chave"
 - `StructuredLogger` emite logs JSON com correlacao minima por `job_id`, `signal_id`, `document_id` e `extraction_id`
 - `GET /api/monitoramentos` e `GET /api/monitoramentos/{job_id}` expõem `failure_stage` e `failure_reason`
 - `GET /api/reprocessamentos` e `GET /api/reprocessamentos/{request_id}` expõem fila, status e metadados de replay
+- `GET /api/extracoes` e `GET /api/extracoes/{extraction_id}` expõem `ExtractionRun`, fatos candidatos e evidências
 - falhas de `source_fetch`, `recovery`, `interpretation` e `canonicalization` ficam registradas para auditoria
 
 ### API por empresa e periodo

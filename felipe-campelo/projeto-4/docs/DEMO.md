@@ -89,6 +89,17 @@ Resultado esperado:
 - visualizar `trigger_type` e `trigger_version`
 - visualizar o documento associado e as versões usadas no último processamento
 
+### 4.2 Auditar extração estruturada
+
+- `GET /api/extracoes`
+- `GET /api/extracoes/{extraction_id}`
+
+Resultado esperado:
+- visualizar `contract_version`, `llm_provider`, `llm_model` e `status`
+- visualizar fatos candidatos persistidos
+- visualizar evidências literais por página
+- visualizar o `raw_contract_payload` validado
+
 ### 5. Auditar documentos e linhagem
 
 - `GET /api/documentos?empresa=mrv`
@@ -142,6 +153,7 @@ Resultado esperado:
 - `tests/unit` contem testes iniciais
 - `tests/integration/test_pipeline_two_layouts_audit.py` prova dois layouts no pipeline com auditoria completa
 - `tests/unit/test_reprocessing_api.py` cobre a superfície operacional de reprocessamento
+- `tests/unit/test_extractions_api.py` cobre a superfície operacional de extrações persistidas
 
 ## Pontos de Atencao para Correcao
 

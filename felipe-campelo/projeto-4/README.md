@@ -60,11 +60,18 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
+cp .env.example .env
 export DATABASE_URL="postgresql+psycopg://SEU_USUARIO:postgres@localhost:5432/pipeline_uda"
 alembic upgrade head
 PYTHONPATH=src python -m app.seeds.load
 uvicorn --app-dir src app.main:app --reload
 ```
+
+Variaveis de ambiente recomendadas:
+
+- copie `.env.example` para `.env`
+- preencha `DATABASE_URL`
+- para extração com LLM real, preencha `LLM_PROVIDER`, `LLM_MODEL` e `LLM_API_KEY`
 
 ## Endpoints Principais
 

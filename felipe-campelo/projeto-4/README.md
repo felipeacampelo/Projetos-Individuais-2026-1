@@ -108,6 +108,7 @@ PYTHONPATH=src python -m app.tools.validate_real_pdf --url "https://api.mziq.com
 - o projeto possui scheduler com `APScheduler`
 - a ingestao manual e periodica reaproveita o mesmo fluxo de monitoramento
 - a deteccao inicial usa polling em paginas de resultados
+- `force_reprocess=true` reaproveita documentos duplicados apenas quando explicitamente solicitado ou quando a versao do contrato semantico mudou
 
 ### Idempotencia e evitar duplicidade
 

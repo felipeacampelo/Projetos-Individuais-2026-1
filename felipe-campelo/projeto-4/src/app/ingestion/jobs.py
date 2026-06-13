@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.extraction.service import DocumentSemanticProcessingService
 from app.ingestion.document_recovery import DocumentRecoveryService
 from app.ingestion.fetchers.document_fetcher import DocumentFetcher
@@ -11,6 +12,7 @@ from app.ingestion.fetchers.results_page_fetcher import ResultsPageFetchError, R
 from app.ingestion.signal_discovery.html_discovery import discover_pdf_signals_from_html
 from app.observability.logging import LogContext, StructuredLogger
 from app.repositories.company_repository import CompanyRepository
+from app.repositories.extraction_repository import ExtractionRepository
 from app.ingestion.source_registry import SourceRegistry
 from app.repositories.monitoring_repository import MonitoringRepository
 
@@ -35,6 +37,7 @@ class MonitoringJobService:
         *,
         results_page_fetcher: ResultsPageFetcher | None = None,
         document_fetcher: DocumentFetcher | None = None,
+        semantic_contract_version: str | None = None,
     ) -> None:
         self.session = session
         self.company_repository = CompanyRepository(session)
@@ -43,7 +46,9 @@ class MonitoringJobService:
         self.results_page_fetcher = results_page_fetcher or ResultsPageFetcher()
         self.document_recovery_service = DocumentRecoveryService(session, fetcher=document_fetcher)
         self.document_semantic_processing_service = DocumentSemanticProcessingService(session)
+        self.extraction_repository = ExtractionRepository(session)
         self.logger = StructuredLogger("pipeline_uda.monitoring")
+        self.semantic_contract_version = semantic_contract_version or get_settings().semantic_contract_version
 
     def close(self) -> None:
         self.session.close()
@@ -64,8 +69,6 @@ class MonitoringJobService:
         scope_value: str | None = None,
         force_reprocess: bool = False,
     ) -> MonitoringRunResult:
-        del force_reprocess
-
         job = self.monitoring_repository.create_job(scope_type=scope_type, scope_value=scope_value)
         self.session.commit()
 
@@ -195,6 +198,24 @@ class MonitoringJobService:
                                 self.logger.info("document_semantic_processing_completed", semantic_context)
                     elif recovery_result.status == "duplicate_content":
                         duplicate_document_count += 1
+                        if (
+                            recovery_result.result_document_id is not None
+                            and recovery_result.content is not None
+                            and self._should_reprocess_duplicate_document(
+                                result_document_id=recovery_result.result_document_id,
+                                force_reprocess=force_reprocess,
+                            )
+                        ):
+                            semantic_result = self.document_semantic_processing_service.process_document(
+                                result_document_id=recovery_result.result_document_id,
+                                content=recovery_result.content,
+                                source_url=signal.signal_url,
+                                document_type=self._infer_document_type(signal.signal_title) or "documento_resultado_trimestral",
+                            )
+                            if semantic_result.extraction_status in {"extracted", "canonicalized"}:
+                                extracted_document_count += 1
+                            if semantic_result.document_state == "canonical":
+                                canonical_document_count += 1
                         self.logger.info("document_duplicate_detected", signal_context)
                     elif recovery_result.status == "recovery_failed":
                         recovery_failed_count += 1
@@ -391,3 +412,18 @@ class MonitoringJobService:
         if canonicalization_failed_count:
             parts.append(f"canonicalization_failed_count={canonicalization_failed_count}")
         return "; ".join(parts) or None
+
+    def _should_reprocess_duplicate_document(
+        self,
+        *,
+        result_document_id: int,
+        force_reprocess: bool,
+    ) -> bool:
+        if force_reprocess:
+            return True
+
+        latest_run = self.extraction_repository.get_latest_run_for_document(result_document_id)
+        if latest_run is None:
+            return True
+
+        return latest_run.contract_version != self.semantic_contract_version

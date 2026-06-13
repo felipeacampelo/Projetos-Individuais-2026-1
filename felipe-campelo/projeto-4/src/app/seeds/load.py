@@ -3,6 +3,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.db.session import SessionLocal
 from app.config import get_settings
 from app.db.models import (
     Company,
@@ -121,3 +122,15 @@ def run_all_seeds(session: Session) -> None:
     seed_publication_sources(session)
     seed_normalization_knowledge_version(session)
     session.commit()
+
+
+def main() -> None:
+    session = SessionLocal()
+    try:
+        run_all_seeds(session)
+    finally:
+        session.close()
+
+
+if __name__ == "__main__":
+    main()

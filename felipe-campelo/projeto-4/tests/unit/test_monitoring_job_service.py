@@ -155,6 +155,15 @@ def test_run_job_discovers_and_deduplicates_documents() -> None:
             }
         ),
     )
+    service.document_semantic_processing_service = StubSemanticProcessingService(
+        DocumentSemanticProcessingResult(
+            extraction_status="canonicalized",
+            document_state="canonical",
+            canonical_metric_count=1,
+            failed_fact_count=0,
+            extraction_run_id=1,
+        )
+    )
 
     result = service.run_job(scope_type="company", scope_value="mrv")
 

@@ -13,6 +13,7 @@ from app.ingestion.signal_discovery.html_discovery import discover_pdf_signals_f
 from app.observability.logging import LogContext, StructuredLogger
 from app.repositories.company_repository import CompanyRepository
 from app.repositories.extraction_repository import ExtractionRepository
+from app.repositories.result_document_repository import ResultDocumentRepository
 from app.ingestion.source_registry import SourceRegistry
 from app.repositories.monitoring_repository import MonitoringRepository
 
@@ -47,6 +48,7 @@ class MonitoringJobService:
         self.document_recovery_service = DocumentRecoveryService(session, fetcher=document_fetcher)
         self.document_semantic_processing_service = DocumentSemanticProcessingService(session)
         self.extraction_repository = ExtractionRepository(session)
+        self.result_document_repository = ResultDocumentRepository(session)
         self.logger = StructuredLogger("pipeline_uda.monitoring")
         settings = get_settings()
         self.semantic_contract_version = semantic_contract_version or settings.semantic_contract_version
@@ -424,7 +426,7 @@ class MonitoringJobService:
         if force_reprocess:
             return True
 
-        document = self.document_semantic_processing_service.result_document_repository.get_by_id(result_document_id)
+        document = self.result_document_repository.get_by_id(result_document_id)
         if document is None:
             return True
 

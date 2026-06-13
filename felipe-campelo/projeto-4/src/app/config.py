@@ -18,6 +18,7 @@ class Settings(BaseModel):
         default="postgresql+psycopg://postgres:postgres@localhost:5432/pipeline_uda"
     )
     llm_provider: str = Field(default="openai")
+    llm_model: str = Field(default="gpt-4o-mini")
     llm_api_key: str = Field(default="")
     polling_enabled: bool = Field(default=False)
     polling_interval_minutes: int = Field(default=1440, ge=1)
@@ -35,6 +36,7 @@ class Settings(BaseModel):
                 "postgresql+psycopg://postgres:postgres@localhost:5432/pipeline_uda",
             ),
             "llm_provider": os.getenv("LLM_PROVIDER", "openai"),
+            "llm_model": os.getenv("LLM_MODEL", "gpt-4o-mini"),
             "llm_api_key": os.getenv("LLM_API_KEY", ""),
             "polling_enabled": os.getenv("POLLING_ENABLED", "false"),
             "polling_interval_minutes": os.getenv("POLLING_INTERVAL_MINUTES", "1440"),

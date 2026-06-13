@@ -103,6 +103,14 @@ Exemplo com URL oficial documentada:
 PYTHONPATH=src python -m app.tools.validate_real_pdf --url "https://api.mziq.com/mzfilemanager/v2/d/ada9bc2c-f7d0-4359-9eaf-851b679ab788/b9e3e792-da8b-5e49-f50f-4c097cf08623?origin=2" --document-type previa_operacional
 ```
 
+Para habilitar extração LLM real:
+
+```zsh
+export LLM_PROVIDER="openai"
+export LLM_MODEL="gpt-4o-mini"
+export LLM_API_KEY="sua_chave"
+```
+
 ## Aderencia ao Enunciado
 
 ### Extracao automatizada e continua
@@ -123,6 +131,7 @@ PYTHONPATH=src python -m app.tools.validate_real_pdf --url "https://api.mziq.com
 
 - os contratos de saida estruturada estao em `src/app/extraction/contracts/semantic_contract.py`
 - a extração prevista e versionada persiste `contract_version` e `raw_contract_payload`
+- quando `LLM_PROVIDER=openai` e `LLM_API_KEY` estao configurados, a extração usa um cliente OpenAI real por HTTP; sem chave, cai no heuristico local
 
 ### Catalogo de dados e linhagem
 
@@ -145,8 +154,8 @@ PYTHONPATH=src python -m app.tools.validate_real_pdf --url "https://api.mziq.com
 
 ## Estado Atual e Limitacoes
 
-- a camada de extracao semantica com LLM esta estruturada, mas ainda nao foi ligada a um provedor real
-- a extracao semantica atual usa um cliente heuristico local para demonstracao, nao um provedor externo real
+- a camada de extracao semantica ja aceita um cliente OpenAI real, mas o caminho de demonstracao continua dependendo de chave e validacao manual com PDFs reais
+- o fallback padrao continua sendo o cliente heuristico local para demonstracao offline
 - a demonstracao completa com dois layouts PDF reais ainda depende da inclusao de fixtures PDF reais adicionais e ampliacao das heuristicas
 - a reavaliacao automatica por precedencia documental foi implementada de forma inicial, mas ainda sem politica completa de completude semantica comparativa
 - o reprocessamento material ja considera mudanca de `semantic_contract_version` e `normalization_knowledge_version`, e agora executa pedidos pendentes em background por replay do PDF de origem

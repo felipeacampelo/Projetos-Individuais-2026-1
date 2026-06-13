@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 from app.canonization.canonical_source_service import ReevaluateCanonicalSourceService
 from app.canonization.service import CanonizationService
 from app.domain.document_lifecycle import DocumentState
-from app.extraction.llm.heuristic import HeuristicExtractionClient
+from app.extraction.llm.base import LLMExtractionClient
+from app.extraction.llm.factory import build_llm_extraction_client
 from app.extraction.pipelines.semantic_extraction import SemanticExtractionPipeline
 from app.repositories.document_lifecycle_repository import DocumentLifecycleRepository
 from app.repositories.document_version_repository import DocumentVersionRepository
@@ -27,9 +28,12 @@ class DocumentSemanticProcessingResult:
 
 
 class DocumentSemanticProcessingService:
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Session, *, llm_client: LLMExtractionClient | None = None) -> None:
         self.session = session
-        self.extraction_pipeline = SemanticExtractionPipeline(session=session, llm_client=HeuristicExtractionClient())
+        self.extraction_pipeline = SemanticExtractionPipeline(
+            session=session,
+            llm_client=llm_client or build_llm_extraction_client(),
+        )
         self.canonical_source_service = ReevaluateCanonicalSourceService(session)
         self.canonization_service = CanonizationService(session)
         self.document_lifecycle_repository = DocumentLifecycleRepository(session)

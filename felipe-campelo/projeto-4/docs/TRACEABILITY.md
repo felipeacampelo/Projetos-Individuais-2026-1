@@ -137,9 +137,10 @@ Cobertura atual:
 - modelagem em Pydantic pronta
 - persistencia do contrato implementada
 - extracao heuristica ponta a ponta preenchendo `ExtractionRun`, fatos candidatos e evidencias
+- porta de extração agora aceita cliente OpenAI real por HTTP quando configurado, preservando fallback heurístico
 
 Risco atual:
-- falta integracao com provedor LLM real externo
+- ainda falta demonstracao efetiva com chave real e PDFs reais sob esse caminho
 
 ### Resiliencia contra variacoes de layout
 

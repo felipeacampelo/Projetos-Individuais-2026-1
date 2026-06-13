@@ -123,6 +123,7 @@ Resultado esperado:
 - contrato semântico em JSON
 - `document.reference_period` inferido do PDF quando presente no texto
 - fatos iniciais extraídos com evidência por página
+- quando `LLM_PROVIDER=openai` e `LLM_API_KEY` estiverem configurados, o mesmo fluxo pode usar o cliente OpenAI real em vez do fallback heurístico
 
 ## Checklist de Entrega
 
@@ -148,6 +149,7 @@ Resultado esperado:
 - existe uma prova automatizada de dois layouts distintos entrando no pipeline com versionamento, evidência e escolha de fonte canônica
 - o pipeline já evita reprocessamento cego de duplicatas sem mudança material de contrato ou normalização
 - pedidos de `ReprocessingRequest` agora podem ser executados pelo scheduler e deixam status `pending`, `processing`, `completed` ou `failed`
+- a porta de extração já aceita provedor OpenAI real, mas a demonstração máxima ainda depende de rodar esse caminho com chave e PDFs reais
 - a parte ainda incompleta para o criterio maximo e a substituicao do extrator heuristico por integracao LLM real em dois PDFs reais diferentes
 - a reavaliacao canônica existe, mas ainda e simples quando duas versoes do mesmo periodo competem
 - na apresentacao, deixar isso explicito evita vender uma completude que o codigo ainda nao entrega

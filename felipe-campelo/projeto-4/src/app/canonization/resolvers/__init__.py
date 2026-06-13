@@ -1,0 +1,1 @@
+"""Resolution policies for canonization."""

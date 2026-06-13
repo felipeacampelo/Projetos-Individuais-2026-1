@@ -79,6 +79,16 @@ Resultado esperado:
 - visualizar `processing_status` de cada sinal
 - quando houver erro, visualizar `failure_stage` e `failure_reason`
 
+### 4.1 Auditar fila de reprocessamento
+
+- `GET /api/reprocessamentos`
+- `GET /api/reprocessamentos/{request_id}`
+
+Resultado esperado:
+- visualizar pedidos `pending`, `processing`, `completed` ou `failed`
+- visualizar `trigger_type` e `trigger_version`
+- visualizar o documento associado e as versões usadas no último processamento
+
 ### 5. Auditar documentos e linhagem
 
 - `GET /api/documentos?empresa=mrv`
@@ -130,6 +140,7 @@ Resultado esperado:
 - `src/app` contem o servico
 - `tests/unit` contem testes iniciais
 - `tests/integration/test_pipeline_two_layouts_audit.py` prova dois layouts no pipeline com auditoria completa
+- `tests/unit/test_reprocessing_api.py` cobre a superfície operacional de reprocessamento
 
 ## Pontos de Atencao para Correcao
 

@@ -74,6 +74,8 @@ uvicorn --app-dir src app.main:app --reload
 - `GET /api/fontes-publicacao`
 - `GET /api/monitoramentos`
 - `GET /api/monitoramentos/{job_id}`
+- `GET /api/reprocessamentos`
+- `GET /api/reprocessamentos/{request_id}`
 - `POST /api/ingest/run`
 - `GET /api/documentos`
 - `GET /api/documentos/{document_id}/linhagem`
@@ -133,6 +135,7 @@ PYTHONPATH=src python -m app.tools.validate_real_pdf --url "https://api.mziq.com
 
 - `StructuredLogger` emite logs JSON com correlacao minima por `job_id`, `signal_id`, `document_id` e `extraction_id`
 - `GET /api/monitoramentos` e `GET /api/monitoramentos/{job_id}` expõem `failure_stage` e `failure_reason`
+- `GET /api/reprocessamentos` e `GET /api/reprocessamentos/{request_id}` expõem fila, status e metadados de replay
 - falhas de `source_fetch`, `recovery`, `interpretation` e `canonicalization` ficam registradas para auditoria
 
 ### API por empresa e periodo

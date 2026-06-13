@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.db.models import ReprocessingRequest, ResultDocument
 
@@ -47,6 +47,26 @@ class ReprocessingRepository:
     def list_pending(self) -> list[ReprocessingRequest]:
         stmt = select(ReprocessingRequest).where(ReprocessingRequest.status == "pending")
         return list(self.session.scalars(stmt))
+
+    def list_requests(self) -> list[ReprocessingRequest]:
+        stmt = (
+            select(ReprocessingRequest)
+            .options(
+                joinedload(ReprocessingRequest.result_document).joinedload(ResultDocument.company),
+            )
+            .order_by(ReprocessingRequest.id.desc())
+        )
+        return list(self.session.scalars(stmt))
+
+    def get_request(self, request_id: int) -> ReprocessingRequest | None:
+        stmt = (
+            select(ReprocessingRequest)
+            .where(ReprocessingRequest.id == request_id)
+            .options(
+                joinedload(ReprocessingRequest.result_document).joinedload(ResultDocument.company),
+            )
+        )
+        return self.session.scalar(stmt)
 
     def mark_processing(self, request: ReprocessingRequest) -> ReprocessingRequest:
         request.status = "processing"

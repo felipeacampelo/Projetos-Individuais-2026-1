@@ -12,6 +12,7 @@ from app.api.routers.ingest import router as ingest_router
 from app.api.routers.metrics import router as metrics_router
 from app.api.routers.monitoring import router as monitoring_router
 from app.api.routers.publication_sources import router as publication_sources_router
+from app.api.routers.reprocessing import router as reprocessing_router
 from app.canonization.reprocessing_executor import ReprocessingExecutor
 from app.config import get_settings
 from app.db.session import SessionLocal
@@ -55,6 +56,7 @@ def create_app() -> FastAPI:
     app.include_router(documents_router)
     app.include_router(publication_sources_router)
     app.include_router(monitoring_router)
+    app.include_router(reprocessing_router)
     app.include_router(ingest_router)
     app.include_router(metrics_router)
     return app

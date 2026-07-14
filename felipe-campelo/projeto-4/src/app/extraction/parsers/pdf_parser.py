@@ -1,8 +1,14 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import fitz
+
+
+@dataclass(frozen=True)
+class ParsedTable:
+    page_number: int
+    rows: list[list[str]]
 
 
 @dataclass(frozen=True)
@@ -10,6 +16,7 @@ class ParsedPage:
     page_number: int
     text: str
     char_count: int
+    tables: list[ParsedTable] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -32,6 +39,7 @@ class PdfParser:
                         page_number=index,
                         text=text,
                         char_count=len(text),
+                        tables=self._extract_tables(page, page_number=index),
                     )
                 )
         finally:
@@ -42,3 +50,13 @@ class PdfParser:
             pages=pages,
             total_char_count=sum(page.char_count for page in pages),
         )
+
+    @staticmethod
+    def _extract_tables(page: fitz.Page, *, page_number: int) -> list[ParsedTable]:
+        tables: list[ParsedTable] = []
+        for table in page.find_tables().tables:
+            rows = [[(cell or "").strip() for cell in row] for row in table.extract()]
+            rows = [row for row in rows if any(cell for cell in row)]
+            if rows:
+                tables.append(ParsedTable(page_number=page_number, rows=rows))
+        return tables

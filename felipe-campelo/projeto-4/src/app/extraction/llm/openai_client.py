@@ -101,6 +101,7 @@ class OpenAIExtractionClient(LLMExtractionClient):
                 {
                     "page_number": page.page_number,
                     "text": page.text[:6000],
+                    "tables": [table.rows for table in page.tables],
                 }
             )
 
@@ -136,6 +137,8 @@ class OpenAIExtractionClient(LLMExtractionClient):
             f"Source URL: {source_url}\n"
             f"Document type hint: {document_type}\n"
             "Use only facts explicitly supported by the pages below.\n"
+            "Each page may include a 'tables' field: a list of tables, each a list of rows, each row a list of cell strings "
+            "in reading order. When a metric appears in both a table row and free text, prefer the table row value.\n"
             "Prefer quarterly operational and housing metrics like VSO, vendas liquidas, lancamentos, estoque, unidades vendidas.\n"
             "Return JSON matching this shape exactly:\n"
             f"{json.dumps(schema_hint, ensure_ascii=True)}\n"

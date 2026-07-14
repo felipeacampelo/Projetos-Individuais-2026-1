@@ -13,6 +13,7 @@ from app.extraction.contracts.semantic_contract import (
     SemanticExtractionContract,
 )
 from app.extraction.llm.base import LLMExtractionClient
+from app.extraction.parsers.pdf_parser import ParsedTable
 from app.extraction.pipelines.document_preparation import PreparedDocumentForExtraction
 
 
@@ -57,6 +58,25 @@ class HeuristicExtractionClient(LLMExtractionClient):
 
         facts: list[CandidateFactContract] = []
         seen_metric_slugs: set[str] = set()
+
+        for page in relevant_pages:
+            for row_cells in self._iter_table_rows(page.tables):
+                joined_row = " | ".join(row_cells)
+                normalized_row = self._normalize(joined_row)
+                for rule in METRIC_RULES:
+                    if rule.slug in seen_metric_slugs:
+                        continue
+                    if not any(alias in normalized_row for alias in rule.aliases):
+                        continue
+                    fact = self._build_fact(
+                        rule=rule,
+                        line=joined_row,
+                        page_number=page.page_number,
+                    )
+                    if fact is None:
+                        continue
+                    facts.append(fact)
+                    seen_metric_slugs.add(rule.slug)
 
         for page in relevant_pages:
             lines = self._iter_lines(page.text)
@@ -183,6 +203,16 @@ class HeuristicExtractionClient(LLMExtractionClient):
     @staticmethod
     def _iter_lines(text: str) -> list[str]:
         return [line.strip() for line in text.splitlines() if line.strip()]
+
+    @staticmethod
+    def _iter_table_rows(tables: list[ParsedTable]) -> list[list[str]]:
+        rows: list[list[str]] = []
+        for table in tables:
+            for row in table.rows:
+                cleaned = [cell for cell in row if cell]
+                if cleaned:
+                    rows.append(cleaned)
+        return rows
 
     @staticmethod
     def _build_context_line(lines: list[str], index: int) -> str:
